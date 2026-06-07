@@ -4,7 +4,7 @@ const path = require('path');
 const crypto = require('crypto');
 const multer = require('multer');
 
-const uploadDir = path.join(os.tmpdir(), 'drive-uploader');
+const uploadDir = path.join(os.tmpdir(), 'cloudnest-uploader');
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({

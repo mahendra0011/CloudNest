@@ -1,4 +1,4 @@
-# Google Drive Upload Studio
+# CloudNest
 
 Full-stack upload system for images, videos, zip files, documents, and general files. Users can register, login with Google, upload files, view their own uploads, download files, and delete files.
 
@@ -21,6 +21,68 @@ Ye project un developers ke liye banaya gaya hai jo apne app me ready-made uploa
 - Backend secret tokens frontend me expose nahi hote.
 - Developers ko upload, list, download, delete APIs ready milti hain.
 - Google login aur email/password login dono available hain.
+- Cheap storage use case ke liye Google Drive ka monthly cost Cloudinary jaise media platforms se kaafi low ho sakta hai.
+
+## Cheap Google Drive vs Cloudinary Pricing
+
+This project is useful when your main requirement is **cheap file storage** with upload, list, download, and delete features. Google Drive storage plans are generally easier for small projects because you pay mainly for storage capacity. Cloudinary is powerful, but its paid plans are built for image/video delivery, transformations, CDN, DAM, and team media workflows.
+
+Pricing examples below are based on the values provided for comparison:
+
+| Platform | Plan | Storage / Credits | Price |
+| --- | --- | --- | --- |
+| Google Drive | Lite (recommended cheap starter) | 30 GB | INR 59/mo |
+| Google Drive | Basic | 100 GB | INR 130/mo |
+| Google Drive | Google AI Plus | 200 GB | INR 399/mo |
+| Cloudinary | Free | 25 monthly credits | $0/mo |
+| Cloudinary | Plus | 225 monthly credits | $89/mo |
+| Cloudinary | Advanced | 600 monthly credits | $224/mo |
+
+### Why Google Drive Is Better For This Project
+
+- Cheap storage: Google Drive plans like 30 GB, 100 GB, and 200 GB are affordable for upload-heavy student, MVP, and internal projects.
+- Simple file storage: files, images, videos, zip archives, PDFs, and docs can be stored in one owner Drive account.
+- Centralized control: all uploads stay in your Google Drive, not in every user account.
+- Easy developer flow: backend handles upload/download, MongoDB handles metadata, React handles dashboard.
+- Good for private dashboards: user downloads go through your backend instead of public CDN links.
+
+### Where Cloudinary Is Better
+
+Cloudinary is not just storage. It is better when your project needs:
+
+- Image and video transformations.
+- Automatic image optimization.
+- Video transcoding and adaptive streaming.
+- CDN-based public media delivery at scale.
+- Digital Asset Management (DAM).
+- Auto-tagging, revision tracking, backup workflows, and role-based team media management.
+- Enterprise support, SLA, SSO, compliance, and custom contracts.
+
+### Important Note
+
+Google Drive is better here mainly because this app is focused on cheap private file storage. Cloudinary is better for public, high-traffic, optimized image/video delivery.
+
+## Best Project Types For This App
+
+- College/student full-stack projects.
+- Startup MVPs with private file upload.
+- Internal admin dashboards.
+- CRM/ERP file attachments.
+- Resume, certificate, report, invoice, and document upload systems.
+- Portfolio apps where owner wants all media in one Drive.
+- Small SaaS apps where users upload images, videos, or zip files.
+- Client portals with private downloads.
+
+## Limitations
+
+- Not a CDN: Google Drive is not designed for high-scale public media delivery like Cloudinary CDN.
+- No built-in transformations: image resize, format conversion, compression, background removal, and video transcoding are not included.
+- API quota limits: Google Drive API has usage limits, so very large traffic needs planning.
+- Owner storage limit: all files use the owner Google Drive storage quota.
+- Refresh token risk: `GOOGLE_DRIVE_REFRESH_TOKEN` must stay secret because it controls owner Drive access.
+- Large public video apps: not ideal for Netflix/YouTube-style streaming or adaptive bitrate playback.
+- Enterprise DAM features: no SSO user management, advanced approvals, asset workflows, or SLA like enterprise platforms.
+- Folder permissions: if you use `GOOGLE_DRIVE_FOLDER_ID`, the owner token must have access to that folder.
 
 ## Features
 
@@ -96,7 +158,7 @@ copy client\.env.example client\.env
 PORT=3000
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173
-MONGO_URI=mongodb://127.0.0.1:27017/drive-uploader
+MONGO_URI=mongodb://127.0.0.1:27017/cloudnest
 JWT_SECRET=replace-with-a-long-random-secret
 
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
@@ -142,13 +204,13 @@ https://your-domain.com
 Local MongoDB:
 
 ```text
-mongodb://127.0.0.1:27017/drive-uploader
+mongodb://127.0.0.1:27017/cloudnest
 ```
 
 MongoDB Atlas:
 
 ```text
-mongodb+srv://USERNAME:PASSWORD@cluster-name.mongodb.net/drive-uploader
+mongodb+srv://USERNAME:PASSWORD@cluster-name.mongodb.net/cloudnest
 ```
 
 Atlas use karte waqt username, password, IP allowlist, and database name properly set karna.

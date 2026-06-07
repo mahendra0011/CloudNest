@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'ok',
-        service: 'drive-uploader-api'
+        service: 'cloudnest-api'
     });
 });
 

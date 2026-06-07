@@ -7,7 +7,6 @@ import Snackbar from '@mui/material/Snackbar';
 import Tooltip from '@mui/material/Tooltip';
 import {
   Archive,
-  CheckCircle2,
   Cloud,
   CloudUpload,
   Database,
@@ -16,13 +15,9 @@ import {
   File,
   FileArchive,
   FileText,
-  HardDriveUpload,
   Image,
   Loader2,
   LogOut,
-  Search,
-  ShieldCheck,
-  Sparkles,
   Trash2,
   Upload,
   UserRound,
@@ -167,78 +162,49 @@ function AuthScreen() {
   }
 
   return (
-    <main className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-6 px-4 py-8 lg:grid-cols-[1.05fr_0.95fr] lg:px-8">
-      <section className="hidden min-h-[620px] overflow-hidden rounded-lg border border-gray-200 bg-gray-950 p-6 text-white shadow-panel lg:flex lg:flex-col lg:justify-between">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-white text-gray-950">
-              <CloudUpload className="h-6 w-6" />
-            </span>
-            <div>
-              <p className="text-lg font-bold">Drive Upload Studio</p>
-              <p className="text-sm text-gray-400">Owner Drive storage</p>
+    <main className="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
+      <Card className="w-full overflow-hidden">
+        <CardHeader className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                <CloudUpload className="h-5 w-5" />
+              </span>
+              <div>
+                <h1 className="text-2xl font-bold">CloudNest</h1>
+                <p className="text-sm text-gray-500">Images, videos, zips, files</p>
+              </div>
             </div>
-          </div>
-          <span className="rounded-lg border border-white/10 bg-white/10 px-3 py-1 text-xs font-bold text-emerald-200">
-            secure
-          </span>
-        </div>
-
-        <div className="max-w-xl">
-          <div className="mb-5 inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/10 px-3 py-2 text-sm font-semibold text-emerald-100">
-            <Sparkles className="h-4 w-4" />
-            Clean upload dashboard
-          </div>
-          <h2 className="text-4xl font-bold leading-tight">Files land in your Drive, users stay in their lane.</h2>
-          <p className="mt-4 max-w-lg text-base leading-7 text-gray-300">
-            A polished upload console with private user libraries, Google login, and backend-controlled Drive storage.
-          </p>
-        </div>
-
-        <div className="grid gap-3">
-          <PreviewRow icon={Image} title="product-shot.png" detail="Image - ready" tone="emerald" />
-          <PreviewRow icon={Video} title="launch-video.mp4" detail="Video - processing" tone="sky" />
-          <PreviewRow icon={FileArchive} title="client-assets.zip" detail="Archive - stored" tone="amber" />
-        </div>
-      </section>
-
-      <Card className="mx-auto w-full max-w-md overflow-hidden">
-        <CardHeader className="space-y-5 p-6">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-950 text-white shadow-soft">
-              <CloudUpload className="h-5 w-5" />
-            </span>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-950">Welcome back</h1>
-              <p className="text-sm text-gray-500">Access your upload workspace</p>
-            </div>
+            <Cloud className="h-6 w-6 text-emerald-600" />
           </div>
 
           <div className="grid grid-cols-2 rounded-lg bg-gray-100 p-1">
             <button
               type="button"
               onClick={() => setMode('login')}
-              className={cn('rounded-md px-3 py-2 text-sm font-semibold transition', mode === 'login' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-800')}
+              className={cn('rounded-md px-3 py-2 text-sm font-semibold transition', mode === 'login' ? 'bg-white shadow-sm' : 'text-gray-500')}
             >
               Login
             </button>
             <button
               type="button"
               onClick={() => setMode('register')}
-              className={cn('rounded-md px-3 py-2 text-sm font-semibold transition', mode === 'register' ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-500 hover:text-gray-800')}
+              className={cn('rounded-md px-3 py-2 text-sm font-semibold transition', mode === 'register' ? 'bg-white shadow-sm' : 'text-gray-500')}
             >
               Register
             </button>
           </div>
         </CardHeader>
 
-        <CardContent className="p-6">
+        <CardContent>
           <Button className="mb-4 w-full" variant="secondary" type="button" onClick={handleGoogleLogin} disabled={loading}>
-            <GoogleMark />
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-900 ring-1 ring-gray-200">
+              G
+            </span>
             Login with Google
           </Button>
 
-          <div className="mb-5 flex items-center gap-3">
+          <div className="mb-4 flex items-center gap-3">
             <span className="h-px flex-1 bg-gray-200" />
             <span className="text-xs font-semibold uppercase text-gray-400">or</span>
             <span className="h-px flex-1 bg-gray-200" />
@@ -293,35 +259,6 @@ function AuthScreen() {
   );
 }
 
-function GoogleMark() {
-  return (
-    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white text-sm font-bold text-gray-950 ring-1 ring-gray-200">
-      G
-    </span>
-  );
-}
-
-function PreviewRow({ icon: Icon, title, detail, tone }) {
-  const tones = {
-    emerald: 'bg-emerald-400/15 text-emerald-200 ring-emerald-400/20',
-    sky: 'bg-sky-400/15 text-sky-200 ring-sky-400/20',
-    amber: 'bg-amber-300/15 text-amber-100 ring-amber-300/20'
-  };
-
-  return (
-    <div className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3">
-      <span className={cn('flex h-10 w-10 items-center justify-center rounded-lg ring-1', tones[tone])}>
-        <Icon className="h-5 w-5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-bold">{title}</p>
-        <p className="text-xs text-gray-400">{detail}</p>
-      </div>
-      <CheckCircle2 className="h-4 w-4 text-emerald-300" />
-    </div>
-  );
-}
-
 function Dashboard({ setNotice }) {
   const dispatch = useDispatch();
   const { user, driveConnected } = useSelector((state) => state.auth);
@@ -338,52 +275,42 @@ function Dashboard({ setNotice }) {
 
   return (
     <main className="mx-auto min-h-screen w-full max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-      <header className="mb-6 rounded-lg border border-gray-200/80 bg-white p-4 shadow-panel">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-lg bg-gray-950 text-white shadow-soft">
-              <HardDriveUpload className="h-5 w-5" />
-            </span>
-            <div>
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold text-gray-950">Drive Upload Studio</h1>
-                <span className="rounded-md bg-gray-100 px-2 py-1 text-xs font-bold text-gray-500">
-                  dashboard
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-gray-500">{user.email}</p>
-            </div>
+      <header className="mb-5 flex flex-col gap-4 rounded-lg border border-gray-200 bg-white p-4 shadow-panel sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+            <CloudUpload className="h-5 w-5" />
+          </span>
+          <div>
+            <h1 className="text-xl font-bold">CloudNest</h1>
+            <p className="text-sm text-gray-500">{user.email}</p>
           </div>
+        </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <span className={cn(
-              'inline-flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-bold ring-1',
-              driveConnected
-                ? 'bg-emerald-50 text-emerald-700 ring-emerald-100'
-                : 'bg-amber-50 text-amber-800 ring-amber-100'
-            )}>
-              <ShieldCheck className="h-4 w-4" />
-              {driveConnected ? 'Owner Drive ready' : 'Owner Drive setup needed'}
+        <div className="flex flex-wrap items-center gap-2">
+          <Chip
+            label={driveConnected ? 'Owner Drive ready' : 'Owner Drive not configured'}
+            color={driveConnected ? 'success' : 'default'}
+            size="small"
+            sx={{ borderRadius: '8px', fontWeight: 700 }}
+          />
+          <Tooltip title="Logout">
+            <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+          {user.avatar ? (
+            <img className="h-10 w-10 rounded-lg object-cover" src={user.avatar} alt="" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-800">
+              {getInitials(user.username)}
             </span>
-            <Tooltip title="Logout">
-              <Button variant="ghost" size="icon" onClick={handleLogout} aria-label="Logout">
-                <LogOut className="h-4 w-4" />
-              </Button>
-            </Tooltip>
-            {user.avatar ? (
-              <img className="h-10 w-10 rounded-lg object-cover ring-1 ring-gray-200" src={user.avatar} alt="" referrerPolicy="no-referrer" />
-            ) : (
-              <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-sm font-bold text-amber-800 ring-1 ring-amber-200">
-                {getInitials(user.username)}
-              </span>
-            )}
-          </div>
+          )}
         </div>
       </header>
 
       <Stats files={items} />
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="mt-5 grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <UploadPanel
           driveConnected={driveConnected}
           uploadStatus={uploadStatus}
@@ -399,18 +326,16 @@ function Dashboard({ setNotice }) {
 function Stats({ files }) {
   const totalSize = files.reduce((sum, file) => sum + Number(file.size || 0), 0);
   const stats = [
-    { label: 'Files', value: files.length, icon: Database, className: 'bg-gray-100 text-gray-700 ring-gray-200', bar: 'bg-gray-400' },
-    { label: 'Images', value: files.filter((file) => file.category === 'image').length, icon: Image, className: 'bg-emerald-50 text-emerald-700 ring-emerald-100', bar: 'bg-emerald-500' },
-    { label: 'Videos', value: files.filter((file) => file.category === 'video').length, icon: Video, className: 'bg-sky-50 text-sky-700 ring-sky-100', bar: 'bg-sky-500' },
-    { label: 'Storage', value: formatBytes(totalSize), icon: Archive, className: 'bg-amber-50 text-amber-700 ring-amber-100', bar: 'bg-amber-500' }
+    { label: 'Files', value: files.length, icon: Database, className: 'bg-gray-100 text-gray-700 ring-gray-200' },
+    { label: 'Images', value: files.filter((file) => file.category === 'image').length, icon: Image, className: 'bg-emerald-50 text-emerald-700 ring-emerald-100' },
+    { label: 'Videos', value: files.filter((file) => file.category === 'video').length, icon: Video, className: 'bg-sky-50 text-sky-700 ring-sky-100' },
+    { label: 'Storage', value: formatBytes(totalSize), icon: Archive, className: 'bg-amber-50 text-amber-700 ring-amber-100' }
   ];
 
   return (
     <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, index) => (
-        <div key={stat.label} className="overflow-hidden rounded-lg border border-gray-200/80 bg-white shadow-panel">
-          <span className={cn('block h-1 w-full', stat.bar)} />
-          <div className="p-4">
+      {stats.map((stat) => (
+        <div key={stat.label} className="rounded-lg border border-gray-200 bg-white p-4 shadow-panel">
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-gray-500">{stat.label}</p>
@@ -419,10 +344,6 @@ function Stats({ files }) {
             <span className={cn('flex h-11 w-11 items-center justify-center rounded-lg ring-1', stat.className)}>
               <stat.icon className="h-5 w-5" />
             </span>
-          </div>
-          <p className="mt-3 text-xs font-semibold text-gray-400">
-            {index === 3 ? 'Owner Drive usage' : 'Private library'}
-          </p>
           </div>
         </div>
       ))}

@@ -6,8 +6,7 @@ export default {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif']
       },
       boxShadow: {
-        panel: '0 18px 55px rgba(15, 23, 42, 0.09)',
-        soft: '0 8px 28px rgba(15, 23, 42, 0.08)'
+        panel: '0 14px 40px rgba(15, 23, 42, 0.08)'
       }
     }
   },
