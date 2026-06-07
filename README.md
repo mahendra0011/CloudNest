@@ -38,7 +38,7 @@ Pricing examples below are based on the values provided for comparison:
 | Cloudinary | Plus | 225 monthly credits | $89/mo |
 | Cloudinary | Advanced | 600 monthly credits | $224/mo |
 
-### Why Google Drive Is Better For This Project
+### Why Google Drive Is Better Than Cloudinary For This Project
 
 - Cheap storage: Google Drive plans like 30 GB, 100 GB, and 200 GB are affordable for upload-heavy student, MVP, and internal projects.
 - Simple file storage: files, images, videos, zip archives, PDFs, and docs can be stored in one owner Drive account.
