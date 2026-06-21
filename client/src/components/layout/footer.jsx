@@ -27,7 +27,8 @@ export function Footer({ className }) {
           <p className="text-xs text-slate-500">© {new Date().getFullYear()} CloudNest · MIT License</p>
         </div>
       </div>
-    </footer>
+    <div className="mt-4 text-center text-xs text-slate-500 dark:text-slate-600">CloudNest v1.0.0 | Built with React, Express & Google Drive API</div>
+      </footer>
   );
 }
 
