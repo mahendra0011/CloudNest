@@ -147,6 +147,14 @@ export function Navbar() {
           </Link>
         </div>
 
+        <div className="hidden md:flex relative max-w-xs flex-1 mx-4">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search files..."
+            className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-700 placeholder-slate-400 transition focus:border-gd-blue focus:outline-none focus:ring-2 focus:ring-gd-blue/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:placeholder-slate-500"
+          />
+        </div>
         <div className="flex items-center gap-2 ml-auto">
           {isAdmin && (
             <Link
