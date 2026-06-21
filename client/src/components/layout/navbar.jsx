@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github } from 'lucide-react';
+import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github, Search } from 'lucide-react';
 import { logout, requestGoogleLogin } from '../../features/auth/authSlice';
 import { Button } from '../ui/button';
 import { cn, getInitials, userLabel } from '../../lib/utils';
