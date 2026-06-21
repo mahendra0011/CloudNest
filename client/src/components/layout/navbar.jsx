@@ -133,18 +133,20 @@ export function Navbar() {
               Dashboard
             </Link>
           )}
-          <Link
-            to="/demo-dashboard"
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition',
-              location.pathname === '/demo-dashboard'
-                ? 'bg-gd-blue/10 text-gd-blue dark:bg-gd-blue/20'
-                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900'
-            )}
-          >
-            <LayoutDashboard className="h-4 w-4" />
-            <span className="hidden lg:inline">Demo Dashboard</span>
-          </Link>
+          {!isAdmin && (
+            <Link
+              to="/demo-dashboard"
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition',
+                location.pathname === '/demo-dashboard'
+                  ? 'bg-gd-blue/10 text-gd-blue dark:bg-gd-blue/20'
+                  : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900'
+              )}
+            >
+              <LayoutDashboard className="h-4 w-4" />
+              <span className="hidden lg:inline">Demo Dashboard</span>
+            </Link>
+          )}
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
