@@ -1,5 +1,8 @@
 # CloudNest
 
+Full-stack upload system for images, videos, zip files, documents, and general files. Users can register, login with Google, upload files, view their own uploads, download files, and delete files.
+
+**Important flow:** Users do **not** connect their own Google Drive. Every uploaded file is saved into the owner Google Drive account configured on the backend with `GOOGLE_DRIVE_REFRESH_TOKEN`.
 
 ## Live Demo
 
