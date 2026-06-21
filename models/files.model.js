@@ -7,6 +7,12 @@ const fileSchema = new mongoose.Schema({
         required: true,
         index: true
     },
+    driveId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'drive',
+        required: true,
+        index: true
+    },
     driveFileId: {
         type: String,
         required: true
@@ -39,6 +45,6 @@ const fileSchema = new mongoose.Schema({
 });
 
 fileSchema.index({ user: 1, createdAt: -1 });
-fileSchema.index({ user: 1, driveFileId: 1 }, { unique: true });
+fileSchema.index({ driveId: 1, driveFileId: 1 }, { unique: true });
 
 module.exports = mongoose.model('file', fileSchema);

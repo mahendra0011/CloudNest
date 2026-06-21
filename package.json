@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -7,9 +9,14 @@
     "express": "^5.2.1",
     "express-validator": "^7.3.2",
     "googleapis": "^166.0.0",
+    "gsap": "^3.15.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.4.1",
-    "multer": "^2.1.1"
+    "multer": "^2.1.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "socket.io": "^4.8.3",
+    "three": "^0.184.0"
   },
   "name": "cloudnest",
   "version": "1.0.0",
@@ -22,7 +29,7 @@
     "google:owner-token": "node scripts/google-owner-token.js",
     "server": "nodemon app.js",
     "start": "node app.js",
-    "test": "node --check app.js && node --check routes/user.routes.js && node --check routes/file.routes.js && node --check routes/drive.routes.js && node --check scripts/google-owner-token.js"
+    "test": "node --check app.js && node --check routes/user.routes.js && node --check routes/file.routes.js && node --check routes/drive.routes.js && node --check config/socket.js && node --check services/activity.service.js && node --check scripts/google-owner-token.js"
   },
   "keywords": [],
   "author": "",

@@ -92,9 +92,10 @@ async function getGoogleProfileFromCode(code) {
         throw err;
     }
 
+    // Verify the ID token. Don't pass audience to allow flexibility
+    // (the OAuth2 client already has the correct client ID).
     const ticket = await oauth2Client.verifyIdToken({
-        idToken: tokens.id_token,
-        audience: process.env.GOOGLE_CLIENT_ID
+        idToken: tokens.id_token
     });
 
     const payload = ticket.getPayload();

@@ -26,6 +26,25 @@ export function formatDate(value) {
   }).format(new Date(value));
 }
 
-export function getInitials(username = '') {
-  return username.slice(0, 2).toUpperCase() || 'DU';
+export function getInitials(value = '') {
+  if (!value) return 'DU';
+
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+  }
+
+  const local = value.includes('@') ? value.split('@')[0] : value;
+  return local.slice(0, 2).toUpperCase() || 'DU';
+}
+
+export function displayName(email = '') {
+  if (!email) return 'Unknown';
+  if (!email.includes('@')) return email;
+  return email.split('@')[0];
+}
+
+export function userLabel(user) {
+  if (!user) return 'Unknown';
+  return user.name || displayName(user.email);
 }

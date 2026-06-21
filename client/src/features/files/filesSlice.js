@@ -1,18 +1,23 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { apiFetch, uploadFile } from '../../lib/api.js';
 
-export const fetchFiles = createAsyncThunk('files/fetch', async (_, { rejectWithValue }) => {
+export const fetchFiles = createAsyncThunk('files/fetch', async (driveIds = '', { rejectWithValue }) => {
   try {
-    return await apiFetch('/files');
+    let query = '';
+    if (driveIds && driveIds.length > 0) {
+      const ids = Array.isArray(driveIds) ? driveIds.join(',') : driveIds;
+      if (ids) query = `?driveId=${encodeURIComponent(ids)}`;
+    }
+    return await apiFetch(`/files${query}`);
   } catch (err) {
     return rejectWithValue(err.message);
   }
 });
 
-export const uploadSelectedFile = createAsyncThunk('files/upload', async (file, { dispatch, rejectWithValue }) => {
+export const uploadSelectedFile = createAsyncThunk('files/upload', async ({ file, userId }, { dispatch, rejectWithValue }) => {
   try {
     dispatch(setUploadProgress(0));
-    const data = await uploadFile(file, (progress) => dispatch(setUploadProgress(progress)));
+    const data = await uploadFile(file, (progress) => dispatch(setUploadProgress(progress)), userId);
     return data.file;
   } catch (err) {
     return rejectWithValue(err.message);

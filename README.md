@@ -1,156 +1,193 @@
 # CloudNest
 
-Full-stack upload system for images, videos, zip files, documents, and general files. Users can register, login with Google, upload files, view their own uploads, download files, and delete files.
 
-Important flow: users do **not** connect their own Google Drive. Every uploaded file is saved into the owner Google Drive account configured on the backend with `GOOGLE_DRIVE_REFRESH_TOKEN`.
+## Live Demo
 
-## Ye Project Kiske Liye Banaya Hai
+- Frontend: `http://localhost:5173`
+- Backend API: `http://localhost:3000/api`
+- Health Check: `http://localhost:3000/api/health`
 
-Ye project un developers ke liye banaya gaya hai jo apne app me ready-made upload feature add karna chahte hain:
+## Quick Start
 
-- SaaS apps jahan users files upload karte hain.
-- Portfolio/admin panels jahan images, videos, zip, PDFs store karne hote hain.
-- Student/dev projects jahan Google Drive ko storage backend ki tarah use karna hai.
-- Apps jahan user ko file manager dashboard chahiye, but storage owner ke Google Drive me centralized rakhna hai.
+```bash
+# 1. Install dependencies
+npm install && npm install --prefix client
 
-## Why It Is Useful
+# 2. Setup environment
+copy .env.example .env
+copy client\.env.example client\.env
 
-- Separate paid storage setup ki zarurat nahi; Google Drive owner account storage use hota hai.
-- User ko apna Google Drive connect nahi karna padta.
-- MongoDB metadata rakhta hai, so har user ko sirf apni files dikhti hain.
-- Backend secret tokens frontend me expose nahi hote.
-- Developers ko upload, list, download, delete APIs ready milti hain.
-- Google login aur email/password login dono available hain.
-- Cheap storage use case ke liye Google Drive ka monthly cost Cloudinary jaise media platforms se kaafi low ho sakta hai.
+# 3. Generate owner Drive token
+npm run google:owner-token
 
-## Cheap Google Drive vs Cloudinary Pricing
+# 4. Start MongoDB
+mongod
 
-This project is useful when your main requirement is **cheap file storage** with upload, list, download, and delete features. Google Drive storage plans are generally easier for small projects because you pay mainly for storage capacity. Cloudinary is powerful, but its paid plans are built for image/video delivery, transformations, CDN, DAM, and team media workflows.
+# 5. Start development servers
+npm run dev
+```
 
-Pricing examples below are based on the values provided for comparison:
+## Project Structure
 
-| Platform | Plan | Storage / Credits | Price |
-| --- | --- | --- | --- |
-| Google Drive | Lite (recommended cheap starter) | 30 GB | INR 59/mo |
-| Google Drive | Basic | 100 GB | INR 130/mo |
-| Google Drive | Google AI Plus | 200 GB | INR 399/mo |
-| Cloudinary | Free | 25 monthly credits | $0/mo |
-| Cloudinary | Plus | 225 monthly credits | $89/mo |
-| Cloudinary | Advanced | 600 monthly credits | $224/mo |
-
-### Why Google Drive Is Better Than Cloudinary For This Project
-
-- Cheap storage: Google Drive plans like 30 GB, 100 GB, and 200 GB are affordable for upload-heavy student, MVP, and internal projects.
-- Simple file storage: files, images, videos, zip archives, PDFs, and docs can be stored in one owner Drive account.
-- Centralized control: all uploads stay in your Google Drive, not in every user account.
-- Easy developer flow: backend handles upload/download, MongoDB handles metadata, React handles dashboard.
-- Good for private dashboards: user downloads go through your backend instead of public CDN links.
-
-### Where Cloudinary Is Better
-
-Cloudinary is not just storage. It is better when your project needs:
-
-- Image and video transformations.
-- Automatic image optimization.
-- Video transcoding and adaptive streaming.
-- CDN-based public media delivery at scale.
-- Digital Asset Management (DAM).
-- Auto-tagging, revision tracking, backup workflows, and role-based team media management.
-- Enterprise support, SLA, SSO, compliance, and custom contracts.
-
-### Important Note
-
-Google Drive is better here mainly because this app is focused on cheap private file storage. Cloudinary is better for public, high-traffic, optimized image/video delivery.
-
-## Best Project Types For This App
-
-- College/student full-stack projects.
-- Startup MVPs with private file upload.
-- Internal admin dashboards.
-- CRM/ERP file attachments.
-- Resume, certificate, report, invoice, and document upload systems.
-- Portfolio apps where owner wants all media in one Drive.
-- Small SaaS apps where users upload images, videos, or zip files.
-- Client portals with private downloads.
-
-## Limitations
-
-- Not a CDN: Google Drive is not designed for high-scale public media delivery like Cloudinary CDN.
-- No built-in transformations: image resize, format conversion, compression, background removal, and video transcoding are not included.
-- API quota limits: Google Drive API has usage limits, so very large traffic needs planning.
-- Owner storage limit: all files use the owner Google Drive storage quota.
-- Refresh token risk: `GOOGLE_DRIVE_REFRESH_TOKEN` must stay secret because it controls owner Drive access.
-- Large public video apps: not ideal for Netflix/YouTube-style streaming or adaptive bitrate playback.
-- Enterprise DAM features: no SSO user management, advanced approvals, asset workflows, or SLA like enterprise platforms.
-- Folder permissions: if you use `GOOGLE_DRIVE_FOLDER_ID`, the owner token must have access to that folder.
-
-## Features
-
-- User register/login with JWT cookie auth.
-- Login with Google button.
-- Owner Google Drive storage for all uploads.
-- Upload images, videos, zip archives, PDFs, docs, and other files.
-- Drag-and-drop React upload UI.
-- Upload progress indicator.
-- File list with categories: image, video, archive, document, other.
-- Download files through backend streaming.
-- Delete file from owner Drive and MongoDB metadata.
-- MongoDB user-wise file metadata.
-- Tailwind CSS, shadcn-style UI, Material UI feedback, lucide icons.
-- Developer docs and reusable upload helper.
+```
+cloudnest/
+├── app.js                    # Main Express server
+├── config/
+│   ├── db.js                 # MongoDB connection
+│   ├── multer.config.js      # File upload middleware
+│   ├── socket.js             # Socket.io configuration
+│   ├── googleDrive.js        # Google Drive OAuth client
+│   └── crypto.js             # Token encryption
+├── models/
+│   ├── user.model.js         # User schema (role-based: user/admin)
+│   ├── files.model.js        # Uploaded file metadata
+│   ├── drive.model.js        # Google Drive configuration
+│   ├── settings.model.js     # User settings
+│   └── activity.model.js     # Activity logs
+├── routes/
+│   ├── user.routes.js        # Auth endpoints (register, login, google)
+│   ├── file.routes.js        # File CRUD endpoints
+│   ├── drive.routes.js       # Drive management endpoints
+│   ├── settings.routes.js    # Settings endpoints
+│   └── activity.routes.js    # Activity logs endpoints
+├── services/
+│   ├── googleDrive.service.js
+│   ├── driveManager.service.js
+│   ├── activity.service.js
+│   └── email.service.js
+├── scripts/
+│   └── google-owner-token.js   # One-time refresh token generator
+└── client/                   # React frontend
+    ├── src/
+    │   ├── components/
+    │   ├── pages/
+    │   ├── features/         # Redux slices
+    │   └── lib/
+    └── index.html
+```
 
 ## Tech Stack
 
-- Frontend: React, Redux Toolkit, Vite, Tailwind CSS, Material UI, lucide-react
-- Backend: Node.js, Express, MongoDB, Mongoose
-- Auth: JWT cookies, email/password, Google login OAuth
-- Storage: Google Drive API using owner refresh token
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19, Redux Toolkit, Vite, Tailwind CSS, Material UI, lucide-react |
+| Backend | Node.js, Express 5, MongoDB, Mongoose |
+| Auth | JWT cookies, email/password, Google OAuth 2.0 |
+| Storage | Google Drive API (owner refresh token) |
+| Real-time | Socket.io |
+
+## Features
+
+### Authentication
+- User registration with email/password
+- Google OAuth login
+- JWT cookie-based authentication
+- Role-based access (user/admin)
+
+### File Management
+- Drag-and-drop upload UI
+- Upload progress indicator
+- Auto category detection: image, video, archive, document, other
+- File organization in Drive folders by category
+- Download streaming through backend
+- Delete from Drive and database
+
+### Admin Dashboard (5 Tabs)
+1. **Overview** - Stats and recent activity
+2. **Upload Management** - File list, upload, delete
+3. **Storage Management** - Add/configure multiple Google Drives, failover
+4. **Settings** - User preferences, notification controls
+5. **Activity Logs** - All upload/download/delete events
+
+### Storage Features
+- Multiple Google Drive support
+- Automatic failover when drive exceeds 90% capacity
+- Storage quota tracking
+- Per-drive configuration
+
+## API Endpoints
+
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register` | Register new user |
+| POST | `/api/auth/login` | Email/password login |
+| GET | `/api/auth/google` | Initiate Google OAuth |
+| GET | `/api/auth/google/callback` | OAuth callback |
+| POST | `/api/auth/logout` | Logout user |
+| GET | `/api/auth/me` | Get current user |
+
+### Files
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/files` | List all files (admin only) |
+| POST | `/api/files/upload` | Upload file (admin assigns user) |
+| POST | `/api/files/user-upload` | Upload file (self-assigned) |
+| POST | `/api/files/admin-upload` | Upload on behalf of user |
+| GET | `/api/files/:id/download` | Download file |
+| DELETE | `/api/files/:id` | Delete file |
+
+### Drives
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/drive/drives` | List all drives |
+| POST | `/api/drive/drives` | Add new drive |
+| PUT | `/api/drive/drives/:id` | Update drive |
+| DELETE | `/api/drive/drives/:id` | Delete drive |
+| POST | `/api/drive/sync/:id` | Sync drive storage stats |
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `PORT` | No | Backend port (default: 3000) |
+| `NODE_ENV` | No | Environment (development/production) |
+| `CLIENT_URL` | Yes | Frontend URL |
+| `MONGO_URI` | Yes | MongoDB connection string |
+| `JWT_SECRET` | Yes | JWT signing secret (generate random) |
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Yes | Google OAuth client secret |
+| `GOOGLE_LOGIN_REDIRECT_URI` | Yes | OAuth callback URL |
+| `GOOGLE_DRIVE_REFRESH_TOKEN` | Yes | Owner Drive refresh token |
+| `GOOGLE_OWNER_DRIVE_SCOPE` | No | Drive scope (default: drive.file) |
+| `OWNER_TOKEN_PORT` | No | Token helper port (default: 4000) |
+| `GOOGLE_DRIVE_FOLDER_ID` | No | Optional upload folder ID |
+| `MAX_UPLOAD_MB` | No | Max upload size in MB (default: 250) |
+| `ADMIN_EMAIL` | Yes | Admin login email |
+| `ADMIN_PASSWORD` | Yes | Admin login password |
 
 ## How Data Flow Works
 
-1. User registers or logs in with Google.
-2. User uploads a file from the dashboard.
-3. Express receives the file with `multer`.
-4. Backend uploads that file to the owner Google Drive account.
-5. MongoDB saves metadata with the logged-in user ID and Google Drive file ID.
-6. User sees only files where `file.user === loggedInUser._id`.
-7. Download streams the owner Drive file through the backend.
+```
+User → Login (JWT) → Dashboard → Upload File
+                        ↓
+                   Express + Multer
+                        ↓
+              Google Drive API (Owner Account)
+                        ↓
+                    MongoDB Metadata
+```
 
-## Important Security Note
+1. User registers or logs in with Google
+2. User uploads a file from the dashboard
+3. Express receives the file with `multer`
+4. Backend uploads that file to the owner Google Drive account (or configured active drive)
+5. MongoDB saves metadata with the logged-in user ID and Google Drive file ID
+6. User sees only files where `file.user === loggedInUser._id`
+7. Download streams the owner Drive file through the backend
 
-Any Google API key, client ID, client secret, or refresh token shared in chat, screenshots, logs, or public repos should be treated as leaked. Rotate it in Google Cloud Console before production.
+## Security
 
-Never commit:
-
-- `.env`
+**Critical:** Never expose these values publicly:
+- `.env` file (gitignored)
 - `GOOGLE_CLIENT_SECRET`
 - `GOOGLE_DRIVE_REFRESH_TOKEN`
-- real MongoDB credentials
+- Real MongoDB credentials
+- `JWT_SECRET`
 
-## Required Redirect URIs
-
-Add both redirect URIs in your Google Cloud OAuth Web Client:
-
-```text
-http://localhost:3000/api/auth/google/callback
-http://localhost:4000/oauth2callback
-```
-
-First URI is for user Google login. Second URI is only for the one-time owner Drive refresh token helper.
+If any credentials are leaked, rotate them immediately in Google Cloud Console.
 
 ## Environment Configuration
-
-Create server env file:
-
-```bash
-copy .env.example .env
-```
-
-Create client env file:
-
-```bash
-copy client\.env.example client\.env
-```
 
 ### Server `.env`
 
@@ -159,352 +196,180 @@ PORT=3000
 NODE_ENV=development
 CLIENT_URL=http://localhost:5173
 MONGO_URI=mongodb://127.0.0.1:27017/cloudnest
-JWT_SECRET=replace-with-a-long-random-secret
+JWT_SECRET=your-48-byte-random-hex-string
 
+# Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
 GOOGLE_LOGIN_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 
+# Owner Drive Storage
 GOOGLE_DRIVE_REFRESH_TOKEN=owner-google-drive-refresh-token
 GOOGLE_OWNER_DRIVE_SCOPE=https://www.googleapis.com/auth/drive.file
 OWNER_TOKEN_PORT=4000
 
-GOOGLE_DRIVE_FOLDER_ID=
+# Optional
+GOOGLE_DRIVE_FOLDER_ID=specific-folder-id-for-uploads
 MAX_UPLOAD_MB=250
+
+# Admin Credentials
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=strong-admin-password
 ```
 
-### Client `client/.env`
+### Client `.env`
 
 ```env
 VITE_API_URL=http://localhost:3000/api
 ```
 
-## Env Values Kaha Se Milenge
+### Getting Environment Values
 
-### `PORT`
-
-Backend server port. Local development me `3000` rakho.
-
-### `CLIENT_URL`
-
-Frontend URL. Local Vite app ke liye:
-
-```text
-http://localhost:5173
-```
-
-Production me apna frontend domain:
-
-```text
-https://your-domain.com
-```
-
-### `MONGO_URI`
-
-Local MongoDB:
-
-```text
-mongodb://127.0.0.1:27017/cloudnest
-```
-
-MongoDB Atlas:
-
-```text
-mongodb+srv://USERNAME:PASSWORD@cluster-name.mongodb.net/cloudnest
-```
-
-Atlas use karte waqt username, password, IP allowlist, and database name properly set karna.
-
-### `JWT_SECRET`
-
-Long random string. Generate karne ke liye:
-
+**JWT_SECRET** - Generate random:
 ```bash
 node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 ```
 
-Output ko `JWT_SECRET` me paste karo.
+**Google OAuth credentials:**
+1. Go to [Google Cloud Console](https://console.cloud.google.com)
+2. Create/select a project
+3. Enable Google Drive API
+4. Configure OAuth consent screen
+5. Create OAuth client ID (Web application type)
+6. Add redirect URIs:
+   - `http://localhost:3000/api/auth/google/callback` (login)
+   - `http://localhost:4000/oauth2callback` (owner token)
 
-### `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
-
-Google Cloud Console se milenge:
-
-1. Go to Google Cloud Console.
-2. Create or select a project.
-3. Open `APIs & Services`.
-4. Open `OAuth consent screen`.
-5. Configure app name, support email, and developer contact email.
-6. Add test users if app is in testing mode.
-7. Open `Credentials`.
-8. Click `Create Credentials`.
-9. Select `OAuth client ID`.
-10. Application type select karo: `Web application`.
-11. Add authorized redirect URIs:
-
-```text
-http://localhost:3000/api/auth/google/callback
-http://localhost:4000/oauth2callback
-```
-
-12. Create.
-13. Copy `Client ID` into `GOOGLE_CLIENT_ID`.
-14. Copy `Client secret` into `GOOGLE_CLIENT_SECRET`.
-
-### `GOOGLE_LOGIN_REDIRECT_URI`
-
-Local:
-
-```text
-http://localhost:3000/api/auth/google/callback
-```
-
-Production:
-
-```text
-https://your-api-domain.com/api/auth/google/callback
-```
-
-This exact URL must also exist in Google Cloud OAuth redirect URIs.
-
-### `GOOGLE_DRIVE_REFRESH_TOKEN`
-
-This token decides which Google Drive account stores all uploaded user files.
-
-Steps:
-
-1. Put real `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
-2. In Google Cloud OAuth Web Client, make sure this redirect URI exists:
-
-```text
-http://localhost:4000/oauth2callback
-```
-
-3. Run:
-
+**GOOGLE_DRIVE_REFRESH_TOKEN:**
 ```bash
 npm run google:owner-token
 ```
+Open the printed URL in browser, login with owner account, and copy the generated token.
 
-4. Terminal will print a Google approval URL.
-5. Open that URL in browser.
-6. Login with **your owner Google account**, not a normal user account.
-7. Approve the Drive permission.
-8. Browser will show success.
-9. Terminal will print:
+### MongoDB Options
 
+Local MongoDB:
 ```env
-GOOGLE_DRIVE_REFRESH_TOKEN=...
+MONGO_URI=mongodb://127.0.0.1:27017/cloudnest
 ```
 
-10. Copy that line into `.env`.
-11. Restart backend.
-
-### `GOOGLE_OWNER_DRIVE_SCOPE`
-
-Default:
-
-```text
-https://www.googleapis.com/auth/drive.file
-```
-
-This is limited scope. It lets the app create/manage files created by the app. If you need broader owner Drive access, use a broader Google Drive scope only after understanding the security tradeoff.
-
-### `OWNER_TOKEN_PORT`
-
-Local port used only by the one-time refresh token helper.
-
-Default:
-
-```text
-4000
-```
-
-If port 4000 is busy, change it and add the matching redirect URI in Google Cloud.
-
-### `GOOGLE_DRIVE_FOLDER_ID`
-
-Optional. If empty, files upload to owner Drive root / app-created area depending on Drive behavior.
-
-To get folder ID:
-
-1. Open Google Drive.
-2. Open the target folder.
-3. URL will look like:
-
-```text
-https://drive.google.com/drive/folders/1AbCFolderIdHere
-```
-
-4. Copy only:
-
-```text
-1AbCFolderIdHere
-```
-
-5. Put it in:
-
+MongoDB Atlas:
 ```env
-GOOGLE_DRIVE_FOLDER_ID=1AbCFolderIdHere
-```
-
-### `MAX_UPLOAD_MB`
-
-Maximum upload size in MB.
-
-Example:
-
-```env
-MAX_UPLOAD_MB=250
+MONGO_URI=mongodb+srv://USERNAME:PASSWORD@cluster.mongodb.net/cloudnest
 ```
 
 ## Step By Step Local Setup
 
-### 1. Install root dependencies
-
+### 1. Install Dependencies
 ```bash
 npm install
-```
-
-### 2. Install frontend dependencies
-
-```bash
 npm install --prefix client
 ```
 
-### 3. Create env files
-
+### 2. Create Environment Files
 ```bash
 copy .env.example .env
 copy client\.env.example client\.env
 ```
 
-### 4. Start MongoDB
+### 3. Configure Google Cloud
+- Create OAuth Web Client
+- Enable Google Drive API
+- Add redirect URIs
 
-Local MongoDB example:
-
-```bash
-mongod
-```
-
-Or use MongoDB Atlas and update `MONGO_URI`.
-
-### 5. Configure Google Cloud
-
-Enable Google Drive API and create OAuth Web Client using the steps above.
-
-### 6. Generate owner Drive refresh token
-
+### 4. Generate Owner Drive Token
 ```bash
 npm run google:owner-token
 ```
+Copy the printed `GOOGLE_DRIVE_REFRESH_TOKEN` into `.env`.
 
-Copy printed `GOOGLE_DRIVE_REFRESH_TOKEN` into `.env`.
+### 5. Start MongoDB
+```bash
+mongod
+# Or use MongoDB Atlas and update MONGO_URI
+```
 
-### 7. Start development servers
-
+### 6. Run Development Servers
 ```bash
 npm run dev
 ```
 
-Frontend:
-
-```text
-http://localhost:5173
-```
-
-Backend:
-
-```text
-http://localhost:3000
-```
-
-Health check:
-
-```text
-http://localhost:3000/api/health
-```
+Access:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3000
+- Health: http://localhost:3000/api/health
 
 ## App Use Flow
 
-1. Open frontend.
-2. Register with username/password or click `Login with Google`.
-3. Dashboard opens.
-4. Upload image/video/zip/document/file.
-5. File saves in owner Google Drive.
-6. Metadata saves in MongoDB.
-7. User can download/delete from dashboard.
+1. Open frontend at http://localhost:5173
+2. Register a new account or click **Login with Google**
+3. Dashboard opens (admin access required)
+4. Upload image/video/zip/document/file via drag-and-drop
+5. File saves in owner Google Drive (or configured active drive)
+6. Metadata saves in MongoDB
+7. User can download/delete files from dashboard
 
-## API
+## Documentation
 
-See [docs/API.md](docs/API.md) for request and response examples.
+- [API Reference](docs/API.md) - Request/response examples
+- [Developer Guide](docs/DEVELOPER_GUIDE.md) - Architecture notes, production deployment guide
 
-## Developer Guide
+*Note: Documentation files will be created in the `docs/` directory.*
 
-See [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) for architecture notes, production notes, and reusable upload example.
+## Troubleshooting
 
-## Common Problems
-
-### Google login says redirect URI mismatch
-
-The value in `.env` and Google Cloud must match exactly:
-
+### Google Login Redirect URI Mismatch
+Ensure `.env` and Google Cloud redirect URIs match exactly:
 ```env
 GOOGLE_LOGIN_REDIRECT_URI=http://localhost:3000/api/auth/google/callback
 ```
 
-Google Cloud redirect URI must also be:
+### Owner Token Not Generated
+1. Remove app from Google Account > Security > Third-party apps
+2. Re-run `npm run google:owner-token`
 
-```text
-http://localhost:3000/api/auth/google/callback
-```
+### Upload Fails - Drive Not Configured
+Check `.env` values are real (not placeholders):
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_DRIVE_REFRESH_TOKEN`
 
-### Owner token script does not return refresh token
+### MongoDB Connection Failed
+- Ensure MongoDB is running (`mongod`)
+- Verify `MONGO_URI` is correct
+- Check Atlas IP allowlist and credentials
 
-Try:
-
-1. Go to Google Account permissions.
-2. Remove this app from third-party access.
-3. Run again:
-
-```bash
-npm run google:owner-token
-```
-
-The helper uses `prompt=consent`, but Google may not return a refresh token if the app was already approved before.
-
-### Upload says owner Google Drive is not configured
-
-Check these env values:
-
-```env
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_DRIVE_REFRESH_TOKEN=...
-```
-
-Also make sure values are real, not placeholders from `.env.example`.
-
-### MongoDB connection failed
-
-Check:
-
-- MongoDB service is running.
-- `MONGO_URI` is correct.
-- Atlas IP allowlist includes your IP.
-- Atlas username/password are correct.
-
-### API key confusion
-
-Google API key is not enough for private Google Drive uploads. This project uses OAuth client ID, OAuth client secret, and owner refresh token.
+### API Key Confusion
+Google API key is not enough. This app uses OAuth 2.0 with:
+- Client ID
+- Client Secret
+- Refresh Token
 
 ## Production Checklist
 
-- Use HTTPS.
-- Set `NODE_ENV=production`.
-- Set `CLIENT_URL` to production frontend URL.
-- Set `GOOGLE_LOGIN_REDIRECT_URI` to production backend callback URL.
-- Add production callback URL in Google Cloud OAuth client.
-- Use strong `JWT_SECRET`.
-- Use MongoDB Atlas or managed MongoDB.
-- Keep `.env` outside git.
-- Rotate leaked Google credentials before deployment.
+- [ ] Use HTTPS
+- [ ] Set `NODE_ENV=production`
+- [ ] Update `CLIENT_URL` to production frontend domain
+- [ ] Update `GOOGLE_LOGIN_REDIRECT_URI` to production callback
+- [ ] Add production callback URL in Google Cloud OAuth client
+- [ ] Generate strong `JWT_SECRET`
+- [ ] Use MongoDB Atlas or managed MongoDB
+- [ ] Keep `.env` outside git (already gitignored)
+- [ ] Rotate any leaked Google credentials
+- [ ] Set strong `ADMIN_PASSWORD`
+- [ ] Configure `GOOGLE_DRIVE_FOLDER_ID` for organized storage
+
+## License
+
+MIT License - Feel free to fork and customize for your projects.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes
+4. Submit a pull request
+
+---
+
+**CloudNest** - Cheap Google Drive storage for your file upload needs.

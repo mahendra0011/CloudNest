@@ -439,6 +439,804 @@ If you copy the dashboard into another app:
 6. Make sure your backend CORS allows your frontend URL.
 7. Keep `credentials: 'include'` on all protected API calls.
 
+---
+
+# 📘 COMPREHENSIVE UPLOAD FLOW DOCUMENTATION FOR DEVELOPERS
+
+This section provides a complete, developer-focused reference on both upload flows in CloudNest. Every file, function, API route, and component is documented with exact file paths, line references, and data flow.
+
+## Table of Contents
+
+1. [Flow 1: User Self-Upload (`POST /api/files/user-upload`)](#flow-1-user-self-upload)
+2. [Flow 2: Admin Upload on Behalf of User (`POST /api/files/admin-upload`)](#flow-2-admin-upload-on-behalf-of-user)
+3. [Flow 3: Admin Upload via Dashboard (`POST /api/files/upload`)](#flow-3-admin-upload-via-dashboard)
+4. [Complete File Reference](#complete-file-reference)
+5. [Drive Selection & Failover System](#drive-selection--failover-system)
+6. [Admin Dashboard Data Display](#admin-dashboard-data-display)
+7. [Storage Management Panel](#storage-management-panel)
+
+---
+
+## Flow 1: User Self-Upload
+
+**Route**: `POST /api/files/user-upload`  
+**File**: `routes/file.routes.js` — Lines 160-180  
+**Purpose**: Any logged-in user uploads a file. The file goes to the admin's Google Drive automatically. The file is assigned to the uploading user.
+
+### Who Can Use This
+
+- Any authenticated user (regular user or admin).
+- No admin role required.
+- The user does NOT need to know which drive or folder — all happens automatically.
+
+### Complete Data Flow
+
+```
+User Browser                         Express Server                      Google Drive API        MongoDB
+     │                                    │                                   │                     │
+     │  1. User selects file              │                                   │                     │
+     │  2. POST /api/files/user-upload    │                                   │                     │
+     │     multipart/form-data            │                                   │                     │
+     │     field: "file"                  │                                   │                     │
+     │     Cookie: token                  │                                   │                     │
+     │───────────────────────────────────>│                                   │                     │
+     │                                    │  3. authMiddleware verifies JWT   │                     │
+     │                                    │     from cookie                   │                     │
+     │                                    │  4. Multer saves temp file        │                     │
+     │                                    │  5. getCategory() determines      │                     │
+     │                                    │     category from MIME type/ext   │                     │
+     │                                    │  6. getUploadDriveResult()        │                     │
+     │                                    │     finds admin user in DB        │────Find admin──────>│
+     │                                    │     then calls                    │                     │
+     │                                    │     uploadToActiveDriveWithF()-   │                     │
+     │                                    │     -ailover()                    │                     │
+     │                                    │                                   │                     │
+     │                                    │  7. Drive Manager checks          │                     │
+     │                                    │     active drive settings         │────Find settings───>│
+     │                                    │     for the admin user            │                     │
+     │                                    │                                   │                     │
+     │                                    │  8. If active drive under 90%    │                     │
+     │                                    │     → upload to it                │                     │
+     │                                    │  9. If over 90% → auto-switch     │                     │
+     │                                    │     to best pool drive            │                     │
+     │                                    │                                   │                     │
+     │                                    │ 10. Get drive client with         │                     │
+     │                                    │     stored credentials            │                     │
+     │                                    │ 11. Get or create category        │───────API call─────>│
+     │                                    │     folder (Images/Videos/etc)    │                     │
+     │                                    │ 12. Stream upload file to Drive   │───────Stream───────>│
+     │                                    │                                   │<────Response────────│
+     │                                    │ 13. Update drive storage stats    │                     │
+     │                                    │                                   │                     │
+     │                                    │ 14. Create File document          │─────Create doc─────>│
+     │                                    │     in MongoDB                   │                     │
+     │                                    │     {user, driveId,               │                     │
+     │                                    │      driveFileId, originalName,   │                     │
+     │                                    │      mimeType, size, category,    │                     │
+     │                                    │      webViewLink, etc}            │                     │
+     │                                    │                                   │                     │
+     │                                    │ 15. Record activity log           │─────Activity log───>│
+     │                                    │                                   │                     │
+     │                                    │ 16. Delete temp file              │                     │
+     │                                    │                                   │                     │
+     │  <─────────── 201 { file } ────────│                                   │                     │
+```
+
+### Backend Code (routes/file.routes.js — Lines 160-180)
+
+```javascript
+router.post('/user-upload', authMiddleware, upload.single('file'), async (req, res, next) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'Please choose a file to upload.' });
+    }
+    try {
+        const targetUser = req.user;  // File is assigned to the uploader
+        const category = getCategory(req.file.mimetype, req.file.originalname);
+        // getUploadDriveResult finds the admin user automatically (not the posting user)
+        const uploadResult = await getUploadDriveResult({ file: req.file, category });
+        const newFile = await createUploadedFile({ req, targetUser, category, uploadResult });
+        res.status(201).json({ file: formatFile(newFile) });
+    } catch (err) {
+        next(err);
+    } finally {
+        fs.unlink(req.file.path).catch(() => {});
+    }
+});
+```
+
+### Key Detail: How the Drive is Selected
+
+```javascript
+// routes/file.routes.js — Lines 73-85
+async function getUploadDriveResult({ file, category, adminId }) {
+    let adminUserId;
+    if (adminId) {
+        adminUserId = adminId;
+    } else {
+        // For user upload, find the first admin user in DB
+        const admin = await userModel.findOne({ role: 'admin' }).select('_id');
+        if (!admin) throw new Error('No admin user found.');
+        adminUserId = admin._id;
+    }
+    return uploadToActiveDriveWithFailover({ file, category, userId: adminUserId });
+}
+```
+
+This function always uses the **admin's** drive settings — regular users never have their own storage config.
+
+### Frontend: UploadDemo Component (HomePage.jsx — Lines 619-810)
+
+The `UploadDemo` component on the homepage uses this route:
+
+```javascript
+// Client-side upload to POST /api/files/user-upload
+import { userUploadFile } from '../../lib/api.js';
+
+async function handleUpload(file) {
+    // userUploadFile uses XMLHttpRequest with onProgress callback
+    const result = await userUploadFile(file, (pct) => setProgress(pct));
+    // result.file contains the saved file metadata
+}
+```
+
+### Frontend: userUploadFile Helper (client/src/lib/api.js — Lines 73-98)
+
+```javascript
+export function userUploadFile(file, onProgress) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    const xhr = new XMLHttpRequest();
+
+    formData.append('file', file);
+    xhr.open('POST', `${API_PREFIX}/files/user-upload`);
+    xhr.withCredentials = true;  // Required for auth cookie
+
+    xhr.upload.onprogress = (event) => {
+      if (!event.lengthComputable) return;
+      onProgress(Math.round((event.loaded / event.total) * 100));
+    };
+
+    xhr.onload = () => {
+      const data = JSON.parse(xhr.responseText || '{}');
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(data);
+      } else {
+        reject(new Error(data.message || 'Upload failed'));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Upload failed'));
+    xhr.send(formData);
+  });
+}
+```
+
+### What the User Sees
+
+1. User browses to homepage → sees the upload section
+2. User clicks "Choose File to Upload" or drag-and-drops a file
+3. File is uploaded with progress bar
+4. On success: green confirmation "✓ Uploaded to Google Drive!"
+5. File is now stored in the admin's Google Drive and recorded in MongoDB
+
+### What the Admin Sees
+
+The uploaded file immediately appears in the admin dashboard **Upload Management** tab. The admin can view, search, filter, download, or delete any file.
+
+---
+
+## Flow 2: Admin Upload on Behalf of User
+
+**Route**: `POST /api/files/admin-upload`  
+**File**: `routes/file.routes.js` — Lines 238-301  
+**Purpose**: Admin uploads a file and assigns it to a specific user by name/email. Admin can also choose which Google Drive to use.
+
+### Who Can Use This
+
+- Only users with `role: 'admin'`.
+- Protected by `requireAdmin` middleware.
+
+### Why This Exists
+
+Sometimes a user cannot upload themselves (e.g. offline, no account, restricted UI). The admin can:
+
+1. Upload the file on their behalf
+2. Specify the user's name and email (for display)
+3. Optionally select which Google Drive to store the file
+
+### Complete Data Flow
+
+```
+Admin Browser                       Express Server                   Google Drive API           MongoDB
+     │                                    │                              │                        │
+     │  1. Admin fills upload form:       │                              │                        │
+     │     - Select file                  │                              │                        │
+     │     - User Name (e.g. Rajesh)      │                              │                        │
+     │     - User Email (e.g. r@ex.com)   │                              │                        │
+     │     - Drive (optional dropdown)    │                              │                        │
+     │                                    │                              │                        │
+     │  2. POST /api/files/admin-upload   │                              │                        │
+     │     multipart/form-data            │                              │                        │
+     │     fields: file, userName,        │                              │                        │
+     │            userEmail, driveId      │                              │                        │
+     │     Cookie: token                  │                              │                        │
+     │───────────────────────────────────>│                              │                        │
+     │                                    │  3. authMiddleware +         │                        │
+     │                                    │     requireAdmin             │                        │
+     │                                    │  4. Multer saves temp file   │                        │
+     │                                    │  5. Find user by email:      │────Find user──────────>│
+     │                                    │     if found → assign to     │                        │
+     │                                    │     that user                │                        │
+     │                                    │     if not found → assign    │                        │
+     │                                    │     to admin (placeholder)   │                        │
+     │                                    │                              │                        │
+     │                                    │  6. Determine category from  │                        │
+     │                                    │     MIME type/extension      │                        │
+     │                                    │                              │                        │
+     │                                    │  7. If driveId provided:     │                        │
+     │                                    │     uploadToDriveById()      │────Upload to Drive────>│
+     │                                    │     (specific drive)        │                        │
+     │                                    │   Else:                      │                        │
+     │                                    │     getUploadDriveResult()   │                        │
+     │                                    │     (auto-select with        │                        │
+     │                                    │      90% failover)           │                        │
+     │                                    │                              │                        │
+     │                                    │  8. Stream file to Drive    │────Stream─────────────>│
+     │                                    │                              │<────Response───────────│
+     │                                    │  9. Update storage stats    │                        │
+     │                                    │                              │                        │
+     │                                    │ 10. Create File document     │────Create doc─────────>│
+     │                                    │     with assigned user       │                        │
+     │                                    │     (populated user ref)     │                        │
+     │                                    │                              │                        │
+     │                                    │ 11. Send email notification  │                        │
+     │                                    │     to user (non-blocking)   │                        │
+     │                                    │                              │                        │
+     │                                    │ 12. Record activity log      │────Activity log───────>│
+     │                                    │                              │                        │
+     │  <─────────── 201 { file } ────────│                              │                        │
+```
+
+### Admin Upload Modal (UploadManagementTab.jsx — Lines 1084-1243)
+
+The modal has these fields:
+
+| Field | Type | Description |
+|-------|------|-------------|
+| File | File Input | The file to upload (required) |
+| User Name | Text Input | Display name for the file owner |
+| User Email | Email Input | If matches existing user, file is assigned to them. Otherwise assigned to admin |
+| Upload to Drive | Dropdown | Optional: pick specific drive. Defaults to auto-select |
+
+Frontend calls `adminUploadFile()`:
+
+```javascript
+// client/src/lib/api.js — Lines 101-131
+export function adminUploadFile(file, { userName, userEmail, driveId }, onProgress) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    const xhr = new XMLHttpRequest();
+
+    formData.append('file', file);
+    if (userName) formData.append('userName', userName);
+    if (userEmail) formData.append('userEmail', userEmail);
+    if (driveId) formData.append('driveId', driveId);
+
+    xhr.open('POST', `${API_PREFIX}/files/admin-upload`);
+    xhr.withCredentials = true;
+    // ... progress and response handling
+    xhr.send(formData);
+  });
+}
+```
+
+### Backend: User Assignment Logic (routes/file.routes.js — Lines 244-255)
+
+```javascript
+const { userName, userEmail, driveId } = req.body;
+
+// Find or use the user by email
+let targetUser = null;
+if (userEmail && userEmail.trim()) {
+    targetUser = await userModel.findOne({ email: userEmail.trim().toLowerCase() })
+        .select('name email role');
+}
+
+// If no matching user found, use the admin themselves as placeholder
+if (!targetUser) {
+    targetUser = req.user;  // The admin becomes the file owner
+}
+```
+
+### Backend: Drive Selection (routes/file.routes.js — Lines 260-266)
+
+```javascript
+let uploadResult;
+if (driveId) {
+    // Admin explicitly chose a specific drive — bypass failover
+    uploadResult = await uploadToDriveById({ file: req.file, category, driveId });
+} else {
+    // No specific drive chosen — use admin's Active drive with 90% failover
+    uploadResult = await getUploadDriveResult({ file: req.file, category, adminId: req.user._id });
+}
+```
+
+### Backend: Email Notification (routes/file.routes.js — Lines 208-222)
+
+After a successful upload, the backend sends a notification email to the assigned user (non-blocking):
+
+```javascript
+if (targetUser.email) {
+    try {
+        const userSettings = await Settings.findOne({ user: targetUser._id });
+        if (userSettings &&
+            userSettings.notificationsEnabled !== false &&
+            userSettings.sendUploadEmail !== false) {
+            sendUploadNotification({
+                to: targetUser.email,
+                fileName: req.file.originalname,
+                userName: req.user.name || req.user.email,
+                uploadDate: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Calcutta' })
+            }).catch(() => {});
+        }
+    } catch (_) {}
+}
+```
+
+---
+
+## Flow 3: Admin Upload via Dashboard
+
+**Route**: `POST /api/files/upload`  
+**File**: `routes/file.routes.js` — Lines 186-230  
+**Purpose**: Admin uploads a file and assigns it to an existing user by selecting a user ID.
+
+### Difference from Flow 2
+
+- Requires a valid `userId` (MongoDB ObjectId) — user must exist in the database
+- Admin selects user from a list rather than typing name/email
+- Used by the Redux-based UI (`uploadFile()` helper)
+
+### Backend Code (routes/file.routes.js — Lines 186-230)
+
+```javascript
+router.post('/upload', authMiddleware, requireAdmin, upload.single('file'), async (req, res, next) => {
+    if (!req.file) return res.status(400).json({ message: 'Please choose a file to upload.' });
+
+    try {
+        const targetUserId = req.body.userId;
+        if (!targetUserId) {
+            return res.status(400).json({ message: 'Please select a user to assign this upload.' });
+        }
+        const targetUser = await userModel.findById(targetUserId).select('name email role');
+        if (!targetUser) return res.status(404).json({ message: 'Selected user not found.' });
+
+        const category = getCategory(req.file.mimetype, req.file.originalname);
+        const uploadResult = await getUploadDriveResult({ file: req.file, category, adminId: req.user._id });
+        const newFile = await createUploadedFile({ req, targetUser, category, uploadResult });
+
+        // ... email notification ...
+
+        res.status(201).json({ file: formatFile(newFile) });
+    } catch (err) { next(err); }
+    finally { fs.unlink(req.file.path).catch(() => {}); }
+});
+```
+
+### Frontend: uploadFile Helper (client/src/lib/api.js — Lines 41-71)
+
+```javascript
+export function uploadFile(file, onProgress, userId) {
+  return new Promise((resolve, reject) => {
+    const formData = new FormData();
+    const xhr = new XMLHttpRequest();
+
+    formData.append('file', file);
+    if (userId) {
+      formData.append('userId', userId);
+    }
+    xhr.open('POST', `${API_PREFIX}/files/upload`);
+    xhr.withCredentials = true;
+    // ... progress and response handling
+    xhr.send(formData);
+  });
+}
+```
+
+---
+
+## Complete File Reference
+
+### Backend Files
+
+| # | File | Lines | Purpose |
+|---|------|-------|---------|
+| 1 | `routes/file.routes.js` | 374 | All upload/download/delete routes |
+| 2 | `services/driveManager.service.js` | 398 | Drive selection, upload, download, delete, failover |
+| 3 | `services/googleDrive.service.js` | — | Legacy Google Drive service (owner-configured) |
+| 4 | `config/googleDrive.js` | 121 | OAuth client, login URL, owner drive client |
+| 5 | `config/multer.config.js` | — | Temporary file storage config, max file size |
+| 6 | `config/crypto.js` | — | Encryption/decryption for stored tokens |
+| 7 | `models/files.model.js` | 50 | File metadata schema |
+| 8 | `models/drive.model.js` | 71 | Drive configuration schema |
+| 9 | `models/settings.model.js` | — | User settings (activeDriveId, notifications) |
+| 10 | `models/user.model.js` | — | User schema (email, password, role) |
+| 11 | `middlewares/auth.js` | — | JWT verification from cookie |
+| 12 | `middlewares/requireAdmin.js` | — | Role check middleware |
+| 13 | `routes/drive.routes.js` | 469 | Drive CRUD, OAuth URL generation, sync, stats |
+
+### Frontend Files
+
+| # | File | Lines | Purpose |
+|---|------|-------|---------|
+| 1 | `client/src/pages/Dashboard/UploadManagementTab.jsx` | 1285 | Full upload management table with filters, search, bulk delete |
+| 2 | `client/src/pages/Dashboard/GoogleDriveIntegrationTab.jsx` | 817 | Storage Management: add/edit/delete drives, OAuth token generation, pool management |
+| 3 | `client/src/pages/home/HomePage.jsx` | 1461 | Landing page with upload demo, dashboard preview, connected drives display |
+| 4 | `client/src/lib/api.js` | 135 | API helper functions (apiFetch, uploadFile, userUploadFile, adminUploadFile, downloadUrl) |
+| 5 | `client/src/features/files/filesSlice.js` | — | Redux slice for file CRUD operations |
+
+### Service Files
+
+| # | File | Lines | Purpose |
+|---|------|-------|---------|
+| 1 | `services/driveManager.service.js` | 398 | Central drive management: getDriveClient, getUploadParentId, getAvailableDrive, uploadToBestDrive, uploadToDriveById, uploadToActiveDriveWithFailover, downloadFromDrive, deleteFromDrive, getStorageStats |
+| 2 | `services/activity.service.js` | — | Activity logging (recordActivity) |
+| 3 | `services/email.service.js` | — | Email notifications |
+
+---
+
+## Drive Selection & Failover System
+
+The most important backend service for understanding upload routing is **`services/driveManager.service.js`**.
+
+### Architecture Overview
+
+```
+                    ┌─────────────────────────────────────────────────┐
+                    │            Upload Request Arrives              │
+                    └────────────────────┬────────────────────────────┘
+                                         │
+                    ┌────────────────────▼────────────────────────────┐
+                    │       uploadToActiveDriveWithFailover()         │
+                    │       (routes/file.routes.js calls this)        │
+                    └────────┬────────────┬─────────────┬─────────────┘
+                             │            │             │
+               ┌─────────────▼──┐  ┌──────▼──────┐  ┌──▼──────────────┐
+               │ No active drive│  │ Active drive│  │ Active drive    │
+               │ configured     │  │ under 90%   │  │ 90%+ capacity   │
+               └────────┬───────┘  └──────┬───────┘  └──────┬──────────┘
+                        │                 │                 │
+               ┌────────▼──────┐  ┌───────▼───────┐  ┌─────▼─────────────┐
+               │uploadToBest   │  │uploadToDrive   │  │Find pool drive    │
+               │Drive()        │  │ById(target)    │  │under 90%          │
+               └───────────────┘  └───────────────┘  └─────┬─────────────┘
+                                                           │
+                                              ┌────────────▼──────────┐
+                                              │ Found?                │
+                                              └────┬────────────┬─────┘
+                                                   │            │
+                                        ┌──────────▼──┐  ┌─────▼──────────┐
+                                        │ Yes: auto-  │  │ No: stay on   │
+                                        │ switch to   │  │ current drive │
+                                        │ new drive   │  │ (over 90%)    │
+                                        └──────────────┘  └───────────────┘
+```
+
+### getAvailableDrive() — Smart Selection (driveManager.service.js — Lines 84-120)
+
+```javascript
+async function getAvailableDrive(requiredBytes = 0) {
+    const drives = await Drive.find({ isActive: true }).lean();
+    if (drives.length === 0) throw new Error('No active drives configured.');
+
+    // Sort by usage percentage ascending (least used first)
+    const sorted = drives
+        .map(d => {
+            const total = Number(d.storage?.limit || 0);
+            const used = Number(d.storage?.usage || 0);
+            const free = total - used;
+            const usagePct = total > 0 ? (used / total) * 100 : 0;
+            return { ...d, total, used, free, usagePct };
+        })
+        .filter(d => d.free >= requiredBytes)  // Skip drives without enough space
+        .sort((a, b) => a.usagePct - b.usagePct);
+
+    if (sorted.length === 0) {
+        // Fallback: return least used drive even if space is low
+        const fallback = drives.sort((a, b) => 
+            (a.storage?.percentage || 0) - (b.storage?.percentage || 0)
+        );
+        return fallback[0];
+    }
+
+    return sorted[0];  // Drive with lowest usage percentage
+}
+```
+
+### uploadToActiveDriveWithFailover() (driveManager.service.js — Lines 313-387)
+
+This function implements the 90% threshold failover:
+
+1. Read the admin's `Settings` to get the `activeDriveId`
+2. If no active drive → upload to best available drive
+3. If active drive has < 90% usage → use it
+4. If active drive has ≥ 90% usage:
+   - Find another pool drive under 90%
+   - If found: auto-switch the active drive in Settings
+   - If not found: stay on current drive (over capacity)
+5. Record an `auto_switch` activity log entry
+
+```javascript
+async function uploadToActiveDriveWithFailover({ file, category, userId }) {
+    const Settings = require('../models/settings.model');
+    const settings = await Settings.findOne({ user: userId });
+
+    if (!settings || !settings.activeDriveId) {
+        return { ...(await uploadToBestDrive({ file, category })), didSwitch: false };
+    }
+
+    const activeDrive = await Drive.findById(settings.activeDriveId);
+    const usagePct = Number(activeDrive.storage?.percentage || 0);
+
+    if (usagePct < 90) {
+        return { ...(await uploadToDriveById({ file, category, driveId: settings.activeDriveId })), didSwitch: false };
+    }
+
+    // Active drive is ≥ 90% — find a better pool drive
+    const poolDrives = await Drive.find({ 
+        _id: { $ne: settings.activeDriveId },
+        isActive: true 
+    }).lean();
+
+    const candidates = poolDrives
+        .map(d => ({ ...d, usagePct: Number(d.storage?.percentage || 0) }))
+        .filter(d => d.usagePct < 90)
+        .sort((a, b) => a.usagePct - b.usagePct);
+
+    if (candidates.length > 0) {
+        // Found a better drive — switch to it
+        settings.activeDriveId = candidates[0]._id;
+        await settings.save();
+        // Record auto-switch activity
+        await activityModel.create({ ... });
+        return { ...(await uploadToDriveById({ file, category, driveId: candidates[0]._id })), didSwitch: true };
+    }
+
+    // All drives also over 90% — use current drive anyway
+    return { ...(await uploadToDriveById({ file, category, driveId: settings.activeDriveId })), didSwitch: false };
+}
+```
+
+### uploadToBestDrive() (driveManager.service.js — Lines 127-173)
+
+Used when no specific drive is targeted. Selects the drive with the lowest usage percentage.
+
+```javascript
+async function uploadToBestDrive({ file, category }) {
+    const driveDoc = await getAvailableDrive(file.size || 0);
+    const driveId = driveDoc._id;
+    const gdrive = getDriveClient(driveDoc);
+    const folderId = await getUploadParentId({ drive: driveDoc, category });
+
+    const response = await gdrive.files.create({
+        requestBody: { name: file.originalname, parents: [folderId] },
+        media: { mimeType: file.mimetype, body: fs.createReadStream(file.path) },
+        fields: 'id,name,mimeType,size,webViewLink,webContentLink,thumbnailLink,iconLink,createdTime',
+        supportsAllDrives: true
+    });
+
+    // Update drive storage usage in background
+    try {
+        const about = await gdrive.about.get({ fields: 'storageQuota' });
+        await Drive.findByIdAndUpdate(driveId, { $set: { 'storage.limit': ..., 'storage.usage': ..., ... } });
+    } catch { /* non-blocking */ }
+
+    return { driveId, googleFile: response.data };
+}
+```
+
+### uploadToDriveById() (driveManager.service.js — Lines 175-223)
+
+Uploads to a specific drive by ID. Used when admin explicitly selects a drive or failover has a target.
+
+### Drive Client Resolution (driveManager.service.js — Lines 9-32)
+
+```javascript
+function getDriveClient(drive) {
+    const clientId = drive.clientId || process.env.GOOGLE_CLIENT_ID;
+    let secret = drive.clientSecret ? decrypt(drive.clientSecret) : process.env.GOOGLE_CLIENT_SECRET;
+    const callbackUrl = process.env.GOOGLE_LOGIN_REDIRECT_URI || 'http://localhost:3000/api/auth/google/callback';
+    const oauth2Client = new google.auth.OAuth2(clientId, secret, callbackUrl);
+
+    if (drive.isOwnerConfigured) {
+        // Use the .env GOOGLE_DRIVE_REFRESH_TOKEN for owner-configured drives
+        oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_DRIVE_REFRESH_TOKEN });
+    } else {
+        // Use the per-drive stored (and encrypted) refresh token
+        oauth2Client.setCredentials({ refresh_token: decrypt(drive.refreshToken) });
+    }
+    return google.drive({ version: 'v3', auth: oauth2Client });
+}
+```
+
+### Category Folder Organization (driveManager.service.js — Lines 37-78)
+
+Files are organized into category-specific subfolders in Google Drive:
+
+```javascript
+const categoryFolderNames = {
+    image: 'Images',
+    video: 'Videos',
+    archive: 'Archives',
+    document: 'Documents',
+    other: 'Other Files'
+};
+```
+
+The `getUploadParentId()` function checks if the folder exists, creates it if not, and returns the folder ID.
+
+---
+
+## Admin Dashboard Data Display
+
+The admin sees all uploaded files through the **Upload Management** tab. Here's how the data flows from backend to frontend.
+
+### Backend: List Files API (routes/file.routes.js — Lines 123-148)
+
+```javascript
+router.get('/', authMiddleware, requireAdmin, async (req, res) => {
+    const query = {};
+    if (req.query.driveId) {
+        const driveIds = req.query.driveId.split(',').filter(Boolean);
+        if (driveIds.length === 1 && driveIds[0] === 'none') {
+            return res.json({ files: [] });  // No drives selected for view
+        }
+        const validIds = driveIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+        if (validIds.length === 1) {
+            query.driveId = new mongoose.Types.ObjectId(validIds[0]);
+        } else if (validIds.length > 1) {
+            query.driveId = { $in: validIds.map(id => new mongoose.Types.ObjectId(id)) };
+        } else {
+            return res.json({ files: [] });
+        }
+    }
+
+    const files = await fileModel
+        .find(query)
+        .populate('user', 'name email')      // Populate user data
+        .populate('driveId', 'name')          // Populate drive name
+        .sort({ createdAt: -1 });             // Newest first
+
+    res.json({ files: files.map(formatFile) });
+});
+```
+
+### Frontend: Fetching Files (filesSlice.js)
+
+The Redux slice dispatches `fetchFiles(driveIds)` which calls:
+
+```javascript
+// filesSlice.js
+fetchFiles: createAsyncThunk('files/fetchFiles', async (driveIds) => {
+    const params = driveIds && driveIds.length > 0 ? `?driveId=${driveIds.join(',')}` : '';
+    return apiFetch(`/files${params}`);
+})
+```
+
+### Frontend: UploadManagementTab Component (UploadManagementTab.jsx)
+
+Key features of the upload management table:
+
+| Feature | Implementation |
+|---------|---------------|
+| Search by file name, user name, email, MIME type | Lines 426-434 |
+| Filter by file type (image, video, archive, document, PDF, etc.) | Lines 437-454 |
+| Filter by date (today, yesterday, 7d, 30d, custom range) | Lines 456-476 |
+| Sort by name, date, size (ascending/descending) | Lines 478-485 |
+| Pagination (10/25/50 per page) | Lines 490-498 |
+| Bulk select & delete | Lines 516-541 |
+| Upload modal (admin on behalf of user) | Lines 1084-1243 |
+
+### Data Displayed Per File
+
+| Column | Data Source | Notes |
+|--------|------------|-------|
+| User Email | `file.user?.email` | Populated from user ref |
+| User Name | `file.user?.name` | Falls back to email prefix |
+| File Name | `file.originalName` | With file type icon |
+| File Type | `getFileMeta()` | Badge with color (PDF, DOCX, PNG, etc.) |
+| Upload Date | `file.createdAt` | Formatted with formatDateTime() |
+| Status | `getFileStatus()` | Uploaded/Processing/Failed |
+| Actions | View, Download, Open in Drive, Delete | Per-row buttons |
+
+### The "Show Data" Toggle
+
+In the **Storage Management** tab, each drive has a **Show Data** toggle:
+
+```jsx
+<button onClick={() => dispatch(setDriveDataView(String(drive._id)))}>
+    {/* Toggle between selectedDiveIds.includes(drive._id) */}
+</button>
+```
+
+When toggled ON, the drive's ID is added to `selectedDriveIds` in Redux state. The Upload Management tab uses these IDs to filter files:
+
+```javascript
+// UploadManagementTab.jsx — Line 375
+const effectiveDriveIds = selectedDriveIds.length === 0 ? ['none'] : selectedDriveIds;
+```
+
+When `effectiveDriveIds` is `['none']`, the API returns an empty array — no files shown. This allows admins to selectively view files from specific drives.
+
+---
+
+## Storage Management Panel
+
+The **GoogleDriveIntegrationTab** component provides full CRUD for drive configurations.
+
+### Adding a Drive
+
+The "Add Drive" form collects:
+
+| Field | Required | Source |
+|-------|----------|--------|
+| Drive Name | Yes | User input |
+| Google Account Email | No | Auto-detected from token |
+| Client ID | No | Falls back to .env defaults |
+| Client Secret | No | Falls back to .env defaults; stored encrypted |
+| Refresh Token | Yes | From OAuth flow; stored encrypted |
+| Folder ID | No | Root if empty |
+
+### OAuth Token Generation Flow
+
+The built-in OAuth generator walks through 3 steps:
+
+1. **Enter Credentials**: User provides Client ID/Secret (or uses .env defaults)
+2. **Authorize**: Backend generates OAuth URL → user opens in browser → grants access → copies redirect URL
+3. **Exchange**: Backend exchanges the authorization code for a refresh token
+
+Backend endpoints used:
+
+| Endpoint | File | Lines |
+|----------|------|-------|
+| `POST /api/drive/oauth-url` | `routes/drive.routes.js` | 125-138 |
+| `POST /api/drive/exchange-code` | `routes/drive.routes.js` | 141-173 |
+
+### Drive Pool Management
+
+Each drive can be:
+
+- **In Pool** (`isActive: true`): Available for auto-selection and failover
+- **Not in Pool** (`isActive: false`): Stored but not used for uploads
+- **Primary** (`activeDriveId`): The current upload target (shown in red)
+
+The pool management endpoints:
+
+| Endpoint | File | Lines |
+|----------|------|-------|
+| `PUT /api/drive/toggle-pool/:id` | `routes/drive.routes.js` | 203-221 |
+| `PUT /api/drive/primary/:id` | `routes/drive.routes.js` | 224-233 |
+| `PUT /api/drive/upload-target/:id` | `routes/drive.routes.js` | 236-265 |
+
+### Auto-Switch Toggle
+
+When auto-switch is enabled (no specific upload target), the system automatically switches drives at 90% capacity. When a specific drive is set as upload target, auto-switch is disabled.
+
+### Storage Sync
+
+Drives can be synced individually or all pool drives at once:
+
+```javascript
+// Sync a single drive — updates storage stats
+POST /api/drive/sync
+
+// Sync all pool drives
+POST /api/drive/sync-all
+```
+
+The sync fetches real-time storage quota from Google Drive API and updates the MongoDB drive document.
+
+---
+
 ## Upload Only Without Dashboard
 
 Use this section when you do not want the full dashboard. For example, you already have your own UI and only want an upload button inside an existing page.
@@ -674,24 +1472,24 @@ If you already have a frontend and only want the backend upload API, copy these 
 ```text
 config/googleDrive.js
 config/multer.config.js
+config/crypto.js
 middlewares/auth.js
+middlewares/requireAdmin.js
 models/files.model.js
+models/drive.model.js
+models/settings.model.js
+models/user.model.js
 routes/file.routes.js
 routes/drive.routes.js
-services/googleDrive.service.js
+services/driveManager.service.js
+services/activity.service.js
 scripts/google-owner-token.js
 ```
 
 Then install the required backend packages:
 
 ```bash
-npm install express mongoose multer googleapis cookie-parser cors dotenv jsonwebtoken
-```
-
-If you also copy local auth:
-
-```bash
-npm install bcrypt express-validator
+npm install express mongoose multer googleapis cookie-parser cors dotenv jsonwebtoken bcrypt express-validator
 ```
 
 Register routes in your Express app:
@@ -769,7 +1567,7 @@ module.exports = multer({
 
 ## Customizing Drive Folder Structure
 
-By default, files are stored by category. If you want every user's files in separate folders, update `services/googleDrive.service.js`.
+By default, files are stored by category. If you want every user's files in separate folders, update `services/driveManager.service.js`.
 
 Example idea:
 

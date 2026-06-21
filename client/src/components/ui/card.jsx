@@ -17,3 +17,7 @@ export function CardHeader({ className, ...props }) {
 export function CardContent({ className, ...props }) {
   return <div className={cn('p-5', className)} {...props} />;
 }
+
+export function CardTitle({ className, ...props }) {
+  return <h3 className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props} />;
+}

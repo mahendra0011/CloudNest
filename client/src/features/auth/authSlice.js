@@ -47,6 +47,36 @@ export const requestGoogleLogin = createAsyncThunk('auth/requestGoogleLogin', as
   try {
     return await apiFetch('/auth/google');
   } catch (err) {
+    return rejectWithValue(err.message || 'Failed to connect to Google login');
+  }
+});
+
+export const fetchUsers = createAsyncThunk('auth/fetchUsers', async (_, { rejectWithValue }) => {
+  try {
+    return await apiFetch('/auth/users');
+  } catch (err) {
+    return rejectWithValue(err.message);
+  }
+});
+
+export const updateProfile = createAsyncThunk('auth/updateProfile', async (payload, { rejectWithValue }) => {
+  try {
+    return await apiFetch('/auth/profile', {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    return rejectWithValue(err.message);
+  }
+});
+
+export const changePassword = createAsyncThunk('auth/changePassword', async (payload, { rejectWithValue }) => {
+  try {
+    return await apiFetch('/auth/password', {
+      method: 'PUT',
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
     return rejectWithValue(err.message);
   }
 });
@@ -57,7 +87,11 @@ const initialState = {
   error: null,
   bootstrapped: false,
   driveConnected: false,
-  driveStatus: 'idle'
+  driveStatus: 'idle',
+  driveDetails: null,
+  users: [],
+  usersStatus: 'idle',
+  googleLoginStatus: 'idle'
 };
 
 const authSlice = createSlice({
@@ -108,6 +142,17 @@ const authSlice = createSlice({
         state.status = 'idle';
         state.error = action.payload;
       })
+      .addCase(requestGoogleLogin.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(requestGoogleLogin.fulfilled, (state) => {
+        state.status = 'idle';
+      })
+      .addCase(requestGoogleLogin.rejected, (state, action) => {
+        state.status = 'idle';
+        state.error = action.payload || 'Failed to connect to Google login';
+      })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.driveConnected = false;
@@ -118,10 +163,34 @@ const authSlice = createSlice({
       .addCase(fetchDriveStatus.fulfilled, (state, action) => {
         state.driveStatus = 'idle';
         state.driveConnected = action.payload.connected;
+        state.driveDetails = action.payload;
       })
       .addCase(fetchDriveStatus.rejected, (state) => {
         state.driveStatus = 'idle';
         state.driveConnected = false;
+        state.driveDetails = null;
+      })
+      .addCase(fetchUsers.pending, (state) => {
+        state.usersStatus = 'loading';
+      })
+      .addCase(fetchUsers.fulfilled, (state, action) => {
+        state.usersStatus = 'idle';
+        state.users = action.payload.users;
+      })
+      .addCase(fetchUsers.rejected, (state) => {
+        state.usersStatus = 'idle';
+        state.users = [];
+      })
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        if (state.user) {
+          state.user.name = action.payload.user.name;
+        }
+      })
+      .addCase(changePassword.fulfilled, (state) => {
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, (state, action) => {
+        state.error = action.payload;
       });
   }
 });
