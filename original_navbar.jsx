@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github, Menu, X } from 'lucide-react';
+import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github } from 'lucide-react';
 import { logout, requestGoogleLogin } from '../../features/auth/authSlice';
 import { Button } from '../ui/button';
 import { cn, getInitials, userLabel } from '../../lib/utils';
@@ -38,7 +38,6 @@ export function Navbar() {
   });
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationsRef = useRef(null);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', isDarkMode);
@@ -152,15 +151,6 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
-          {/* Mobile Hamburger */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="inline-flex md:hidden rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
-            aria-label="Menu"
-          >
-            {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </button>
-
           {isAdmin && (
             <Link
               to="/dashboard"
@@ -282,68 +272,6 @@ export function Navbar() {
           )}
         </div>
       </div>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="border-t border-slate-200 bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-950 md:hidden">
-          <div className="flex flex-col gap-1">
-            {isHome ? (
-              anchorLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
-                >
-                  {link.label}
-                </a>
-              ))
-            ) : (
-              <Link
-                to="/"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
-              >
-                Home
-              </Link>
-            )}
-            <Link
-              to="/docs"
-              onClick={() => setMobileMenuOpen(false)}
-              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900"
-            >
-              <BookOpen className="h-4 w-4" /> Documentation
-            </Link>
-            {isAdmin ? (
-              <Link
-                to="/dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition',
-                  isActive('/dashboard')
-                    ? 'bg-gd-green/10 text-gd-green dark:bg-gd-green/20'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900'
-                )}
-              >
-                <LayoutDashboard className="h-4 w-4" /> Dashboard
-              </Link>
-            ) : (
-              <Link
-                to="/demo-dashboard"
-                onClick={() => setMobileMenuOpen(false)}
-                className={cn(
-                  'inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold transition',
-                  location.pathname === '/demo-dashboard'
-                    ? 'bg-gd-blue/10 text-gd-blue dark:bg-gd-blue/20'
-                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-900'
-                )}
-              >
-                <LayoutDashboard className="h-4 w-4" /> Demo Dashboard
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
     </nav>
   );
 }

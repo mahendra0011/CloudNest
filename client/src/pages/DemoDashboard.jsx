@@ -43,7 +43,7 @@ export default function DemoDashboard() {
   const activeTheme = activeTab === 'management'
     ? 'bg-white dark:bg-slate-950'
     : tabs.find((t) => t.id === activeTab)?.theme || 'bg-slate-50 dark:bg-slate-950';
-  const panelClass = 'w-full min-h-[calc(100dvh-12rem)] px-4 py-6 sm:px-6 sm:py-8 lg:px-16';
+  const panelClass = 'w-full min-h-[calc(100vh-12rem)] px-8 py-8 sm:px-10 lg:px-16';
 
   return (
     <div className="flex min-h-screen flex-col dark:bg-slate-950">
@@ -71,7 +71,7 @@ export default function DemoDashboard() {
                   )}
                 >
                   <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  <span className="hidden xs:inline">{tab.label}</span>
+                  {tab.label}
                 </button>
               );
             })}
@@ -80,7 +80,7 @@ export default function DemoDashboard() {
       </div>
 
       {/* Full-screen tab panels - matching admin DashboardPage exactly */}
-      <div className={cn('flex-1 w-full min-h-[calc(100dvh-12rem)]', activeTheme)}>
+      <div className={cn('flex-1 w-full min-h-[calc(100vh-12rem)]', activeTheme)}>
         <div className={cn(panelClass)}>
           {activeTab === 'overview' && (
             <DemoOverviewTab

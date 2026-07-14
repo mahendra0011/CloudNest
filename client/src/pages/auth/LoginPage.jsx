@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { login, requestGoogleLogin } from '../../features/auth/authSlice';
-import { Eye, EyeOff, CloudUpload } from 'lucide-react';
+import { Eye, EyeOff, CloudUpload, Shield, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Input } from '../../components/ui/shadcn-input';
 import { Button } from '../../components/ui/button';
@@ -48,48 +48,73 @@ export default function LoginPage({ onLoginSuccess }) {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-950 dark:to-blue-950/20">
+      {/* Animated background decoration */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-gd-blue/5 blur-3xl dark:bg-gd-blue/10" />
+        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-gd-green/5 blur-3xl dark:bg-gd-green/10" />
+      </div>
+
       {/* Left — Blue branding */}
-      <div className="hidden w-1/2 flex-col justify-between bg-gd-blue p-12 text-white lg:flex">
-        <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15">
+      <div className="hidden relative w-1/2 flex-col justify-between bg-gradient-to-br from-gd-blue via-blue-600 to-blue-800 p-12 text-white overflow-hidden lg:flex">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-50" />
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
             <CloudUpload className="h-6 w-6" />
           </div>
           <span className="font-display text-2xl font-black">CloudNest</span>
         </div>
-        <div>
-          <h1 className="font-display text-4xl font-black leading-tight">
+        <div className="relative z-10">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-semibold backdrop-blur-sm mb-6">
+            <Sparkles className="h-3.5 w-3.5" />
+            Secure Cloud Storage
+          </div>
+          <h1 className="font-display text-5xl font-black leading-tight">
             Welcome back to
             <br />
-            CloudNest
+            <span className="text-gradient-yellow">CloudNest</span>
           </h1>
-          <p className="mt-4 max-w-md text-lg text-white/80">
+          <p className="mt-4 max-w-md text-lg text-white/70 leading-relaxed">
             Administrators manage uploads from the dashboard. Regular users sign in to access the website — files are uploaded by your admin.
           </p>
+          <div className="mt-8 flex items-center gap-4 text-sm text-white/50">
+            <div className="flex items-center gap-1.5">
+              <Shield className="h-4 w-4" />
+              Encrypted
+            </div>
+            <div className="flex items-center gap-1.5">
+              <CloudUpload className="h-4 w-4" />
+              Google Drive
+            </div>
+          </div>
         </div>
-        <p className="text-sm text-white/60">© {new Date().getFullYear()} CloudNest</p>
+        <p className="relative z-10 text-sm text-white/40">© {new Date().getFullYear()} CloudNest</p>
       </div>
 
       {/* Right — Form */}
-      <div className="flex w-full flex-col items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 lg:w-1/2">
-        {/* Mobile Brand Header - visible only on mobile */}
-        <div className="mb-6 flex flex-col items-center text-center lg:hidden">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gd-blue text-white shadow-gd-blue mb-3">
-            <CloudUpload className="h-6 w-6" />
+      <div className="flex w-full flex-col items-center justify-center bg-transparent px-4 py-12 lg:w-1/2">
+        {/* Mobile Brand Header */}
+        <div className="mb-8 flex flex-col items-center text-center lg:hidden">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gd-blue to-blue-700 text-white shadow-xl shadow-gd-blue/30 mb-4 animate-bounce-soft">
+            <CloudUpload className="h-8 w-8" />
           </div>
-          <h1 className="font-display text-2xl font-black text-slate-900 dark:text-white">CloudNest</h1>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Sign in to your account</p>
+          <h1 className="font-display text-3xl font-black text-slate-900 dark:text-white">CloudNest</h1>
+          <p className="mt-1.5 text-sm text-slate-500 dark:text-slate-400">Sign in to your account</p>
         </div>
-        <Card className="w-full max-w-md border-slate-200 shadow-xl dark:border-slate-800">
-          <CardHeader className="space-y-1 text-center pb-4">
-            <CardTitle className="font-display text-2xl font-black">Sign in</CardTitle>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Admin dashboard access · User website login
+
+        <Card className="w-full max-w-md border-0 bg-white/80 shadow-2xl shadow-slate-200/50 backdrop-blur-xl dark:bg-slate-900/80 dark:shadow-slate-900/50 dark:border dark:border-slate-800 animate-scale-in">
+          <CardHeader className="space-y-1 text-center pb-6 pt-8">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-gd-blue to-blue-600 text-white shadow-lg shadow-gd-blue/20">
+              <CloudUpload className="h-6 w-6" />
+            </div>
+            <CardTitle className="font-display text-2xl font-black text-slate-900 dark:text-white">Welcome Back</CardTitle>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Sign in to your CloudNest account
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-5 px-8 pb-8">
             {error && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-400">
+              <div className="animate-slide-up rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-400">
                 {error}
               </div>
             )}
@@ -97,29 +122,23 @@ export default function LoginPage({ onLoginSuccess }) {
               type="button"
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="flex w-full items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              className="group flex w-full items-center justify-center gap-3 rounded-xl border-2 border-slate-200 bg-white px-4 py-3.5 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:border-gd-blue/30 hover:bg-blue-50/50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-gd-blue/50 dark:hover:bg-slate-700"
             >
-              <GoogleIcon className="h-5 w-5" />
-              {loading ? 'Opening Google...' : 'Continue with Google'}
+              <GoogleIcon className="h-5 w-5 shrink-0" />
+              <span>{loading ? 'Opening Google...' : 'Continue with Google'}</span>
             </button>
 
             <div className="relative py-2">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+                <div className="w-full border-t border-slate-200 dark:border-slate-700" />
               </div>
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-slate-500 dark:bg-slate-900">or email</span>
+              <div className="relative flex justify-center">
+                <span className="bg-white px-4 text-xs font-semibold uppercase tracking-wider text-slate-400 dark:bg-slate-900 dark:text-slate-500">or sign in with email</span>
               </div>
             </div>
 
-            {error && (
-              <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-800 dark:bg-rose-950/50 dark:text-rose-400">
-                {error}
-              </div>
-            )}
-
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email</label>
                 <Input
                   type="email"
@@ -127,9 +146,10 @@ export default function LoginPage({ onLoginSuccess }) {
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
                   placeholder="you@example.com"
                   required
+                  className="rounded-xl border-slate-200 bg-white/50 px-4 py-3 text-sm transition-all focus:border-gd-blue focus:ring-2 focus:ring-gd-blue/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder-slate-500"
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Password</label>
                 <div className="relative">
                   <Input
@@ -138,25 +158,36 @@ export default function LoginPage({ onLoginSuccess }) {
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                     placeholder="••••••••"
                     required
-                    className="pr-10"
+                    className="rounded-xl border-slate-200 bg-white/50 px-4 py-3 pr-12 text-sm transition-all focus:border-gd-blue focus:ring-2 focus:ring-gd-blue/20 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:placeholder-slate-500"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
-              <Button type="submit" className="w-full bg-gd-blue hover:bg-gd-blue-dark text-white font-bold rounded-xl" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
+              <Button
+                type="submit"
+                className="w-full rounded-xl bg-gradient-to-r from-gd-blue to-blue-600 px-4 py-3.5 text-sm font-bold text-white shadow-lg shadow-gd-blue/25 transition-all hover:from-gd-blue-dark hover:to-blue-700 hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-60"
+                disabled={loading}
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" /><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
             </form>
 
-            <p className="text-center text-sm text-slate-600 dark:text-slate-400">
-              No account?{' '}
-              <Link to="/register" className="font-semibold text-gd-blue hover:underline">
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400">
+              Don't have an account?{' '}
+              <Link to="/register" className="font-bold text-gd-blue transition-colors hover:text-gd-blue-dark">
                 Create one free
               </Link>
             </p>
