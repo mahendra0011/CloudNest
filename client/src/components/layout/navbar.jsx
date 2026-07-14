@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github, Menu, X } from 'lucide-react';
+import { CloudUpload, Sun, Moon, LogOut, BookOpen, LayoutDashboard, Bell, Loader2, Github, Menu, X, Download } from 'lucide-react';
 import { logout, requestGoogleLogin } from '../../features/auth/authSlice';
 import { Button } from '../ui/button';
 import { cn, getInitials, userLabel } from '../../lib/utils';
@@ -38,6 +38,8 @@ export function Navbar() {
   });
   const [showNotifications, setShowNotifications] = useState(false);
   const notificationsRef = useRef(null);
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const downloadRef = useRef(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -46,17 +48,18 @@ export function Navbar() {
   }, [isDarkMode]);
 
   useEffect(() => {
-    if (!showNotifications) return undefined;
-
     const handleClickOutside = (event) => {
       if (notificationsRef.current && !notificationsRef.current.contains(event.target)) {
         setShowNotifications(false);
+      }
+      if (downloadRef.current && !downloadRef.current.contains(event.target)) {
+        setShowDownloadMenu(false);
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [showNotifications]);
+  }, []);
 
   const handleLogout = async () => {
     await dispatch(logout());
@@ -149,6 +152,44 @@ export function Navbar() {
               <span className="hidden lg:inline">Demo Dashboard</span>
             </Link>
           )}
+
+          {/* Download Admin Dashboard ZIP */}
+          <div className="relative" ref={downloadRef}>
+            <button
+              onClick={() => setShowDownloadMenu((prev) => !prev)}
+              className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-emerald-600 transition hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+              title="Download Admin Dashboard"
+            >
+              <Download className="h-4 w-4" />
+              <span className="hidden lg:inline">Download</span>
+            </button>
+            {showDownloadMenu && (
+              <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-4 shadow-xl dark:border-slate-800 dark:bg-slate-900">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    <Download className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white">Admin Dashboard</p>
+                    <p className="text-xs text-slate-500">Complete source code</p>
+                  </div>
+                </div>
+                <div className="space-y-2 mb-3 text-xs text-slate-500 dark:text-slate-400">
+                  <p className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> 66 files included</p>
+                  <p className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Frontend + Backend code</p>
+                  <p className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-emerald-500" /> Ready to add to your project</p>
+                </div>
+                <a
+                  href="/admin-dashboard.zip"
+                  download
+                  onClick={() => setShowDownloadMenu(false)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700"
+                >
+                  <Download className="h-4 w-4" /> Download ZIP
+                </a>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 ml-auto">
@@ -341,6 +382,18 @@ export function Navbar() {
                 <LayoutDashboard className="h-4 w-4" /> Demo Dashboard
               </Link>
             )}
+
+            <div className="border-t border-slate-100 dark:border-slate-800 pt-3 mt-2">
+              <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">Download</p>
+              <a
+                href="/admin-dashboard.zip"
+                download
+                onClick={() => setMobileMenuOpen(false)}
+                className="inline-flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 w-full dark:text-emerald-400 dark:hover:bg-emerald-950/30"
+              >
+                <Download className="h-4 w-4" /> Admin Dashboard ZIP
+              </a>
+            </div>
           </div>
         </div>
       )}

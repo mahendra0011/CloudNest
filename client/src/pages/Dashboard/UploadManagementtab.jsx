@@ -629,7 +629,7 @@ export default function UploadManagementUI({ activeDriveId = '', activeDrive = n
             className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm hover:bg-blue-700 hover:shadow-md transition-all sm:gap-2 sm:px-5 sm:py-3 sm:text-sm"
           >
             <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-            <span className="hidden xs:inline">Upload File</span>
+            <span className="hidden sm:inline">Upload File</span>
           </button>
         </div>
       </div>
@@ -727,7 +727,7 @@ export default function UploadManagementUI({ activeDriveId = '', activeDrive = n
             title="Refresh"
           >
             <RefreshCw className={cn('h-3.5 w-3.5 sm:h-4 sm:w-4', isLoading && 'animate-spin')} />
-            <span className="hidden xs:inline">Refresh</span>
+            <span className="hidden sm:inline">Refresh</span>
           </button>
         </div>
 

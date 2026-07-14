@@ -1,4 +1,5 @@
 .env
+client/public/admin-dashboard.zip
 node_modules
 client/node_modules
 client/dist

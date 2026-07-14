@@ -26,6 +26,7 @@
     "build": "npm install --prefix client && npm run build --prefix client",
     "client": "npm run dev --prefix client",
     "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build:admin-zip": "node scripts/build-admin-zip.js",
     "google:owner-token": "node scripts/google-owner-token.js",
     "server": "nodemon app.js",
     "start": "node app.js",
