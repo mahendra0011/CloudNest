@@ -176,7 +176,7 @@ export function DemoGoogleDriveIntegrationTab() {
 
       {/* Stats Grid */}
       {stats.totalDrives > 0 && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="rounded-2xl border border-slate-200/80 bg-white/50 p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900/50">
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Storage</p>
             <p className="mt-1 font-display text-xl font-black text-slate-900 dark:text-white">{formatBytes(stats.totalStorage)}</p>
@@ -299,7 +299,7 @@ export function DemoGoogleDriveIntegrationTab() {
               </div>
             )}
 
-            <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs text-slate-500">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-slate-500 sm:grid-cols-4">
               <div className="flex items-center gap-1"><Mail className="h-3 w-3" /> {drive.email}</div>
               <div className="flex items-center gap-1"><RefreshCw className="h-3 w-3" /> {drive.lastSynced ? formatDate(drive.lastSynced) : 'Never'}</div>
               <div className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> {drive.syncErrors ?? 0} errors</div>

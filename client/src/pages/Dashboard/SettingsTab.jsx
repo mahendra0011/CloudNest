@@ -152,13 +152,13 @@ export function SettingsTab() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-12rem)] space-y-6">
+    <div className="min-h-[calc(100dvh-12rem)] space-y-6">
       <div>
         <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">Settings</h2>
         <p className="mt-1 text-sm text-slate-500">Manage your account and preferences</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
         {/* 5. Max Upload Size */}
         <div className="gd-card-solid">
           <div className="flex items-center gap-3 mb-4">

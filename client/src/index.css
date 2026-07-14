@@ -14,6 +14,45 @@
   ::selection {
     @apply bg-gd-blue/20 text-gd-blue-dark;
   }
+
+  /* Safari 100dvh support */
+  @supports (height: 100dvh) {
+    .min-h-screen {
+      min-height: 100dvh;
+    }
+    .h-screen {
+      height: 100dvh;
+    }
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide on mobile, show on desktop */
+  .hidden-xs {
+    display: none;
+  }
+  @media (min-width: 480px) {
+    .hidden-xs {
+      display: initial;
+    }
+  }
+  @media (max-width: 479px) {
+    .xs\:inline {
+      display: inline;
+    }
+    .xs\:hidden {
+      display: none;
+    }
+  }
 }
 
 @layer components {

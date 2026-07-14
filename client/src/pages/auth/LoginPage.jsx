@@ -72,6 +72,14 @@ export default function LoginPage({ onLoginSuccess }) {
 
       {/* Right — Form */}
       <div className="flex w-full flex-col items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 lg:w-1/2">
+        {/* Mobile Brand Header - visible only on mobile */}
+        <div className="mb-6 flex flex-col items-center text-center lg:hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gd-blue text-white shadow-gd-blue mb-3">
+            <CloudUpload className="h-6 w-6" />
+          </div>
+          <h1 className="font-display text-2xl font-black text-slate-900 dark:text-white">CloudNest</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Sign in to your account</p>
+        </div>
         <Card className="w-full max-w-md border-slate-200 shadow-xl dark:border-slate-800">
           <CardHeader className="space-y-1 text-center pb-4">
             <CardTitle className="font-display text-2xl font-black">Sign in</CardTitle>

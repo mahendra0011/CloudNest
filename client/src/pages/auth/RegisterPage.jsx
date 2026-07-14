@@ -68,6 +68,14 @@ export default function RegisterPage({ onRegisterSuccess }) {
       </div>
 
       <div className="flex w-full flex-col items-center justify-center bg-slate-50 px-4 py-12 dark:bg-slate-950 lg:w-1/2">
+        {/* Mobile Brand Header - visible only on mobile */}
+        <div className="mb-6 flex flex-col items-center text-center lg:hidden">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gd-green text-white shadow-gd-green mb-3">
+            <CloudUpload className="h-6 w-6" />
+          </div>
+          <h1 className="font-display text-2xl font-black text-slate-900 dark:text-white">CloudNest</h1>
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Create your free account</p>
+        </div>
         <div className="w-full max-w-md">
           <div className="mb-8 text-center lg:text-left">
             <h1 className="font-display text-3xl font-black text-slate-900 dark:text-white">Create account</h1>

@@ -115,7 +115,7 @@ export function DemoSettingsTab() {
         <p className="mt-1 text-sm text-slate-500">Manage your account and preferences</p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="grid gap-6 sm:grid-cols-1 lg:grid-cols-2">
         {/* 5. Max Upload Size */}
         <div className="gd-card-solid">
           <div className="flex items-center gap-3 mb-4">

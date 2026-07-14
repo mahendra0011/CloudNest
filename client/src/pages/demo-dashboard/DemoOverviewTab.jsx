@@ -56,7 +56,7 @@ export function DemoOverviewTab({ files = [], activities = [], loadingActivities
   const showNoData = selectedDrives.length === 0;
 
 return (
-    <div className="min-h-[calc(100vh-12rem)] space-y-6">
+    <div className="min-h-[calc(100dvh-12rem)] space-y-6">
       {/* Selected Drive Info */}
       {drivesToShow.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
@@ -80,7 +80,7 @@ return (
 
       {/* Stats Grid - only show when we have data */}
       {!showNoData && (
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (

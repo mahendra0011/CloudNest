@@ -62,7 +62,7 @@ export function ActivityLogsTab({ activities = [], loading, onRefresh, globalSea
   }, [uploadActivities, query, globalSearch]);
 
   return (
-    <div className="min-h-[calc(100vh-12rem)]">
+    <div className="min-h-[calc(100dvh-12rem)]">
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
            <h2 className="font-display text-2xl font-black text-slate-900 dark:text-white">Upload Activity</h2>
@@ -79,14 +79,14 @@ export function ActivityLogsTab({ activities = [], loading, onRefresh, globalSea
            )}
          </div>
         <div className="flex items-center gap-2">
-          <div className="relative">
+          <div className="relative w-full sm:w-auto">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
               type="search"
               placeholder="Search uploads..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:placeholder-slate-500"
+              className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-4 text-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200 dark:placeholder-slate-500"
             />
           </div>
           <button
@@ -113,11 +113,11 @@ export function ActivityLogsTab({ activities = [], loading, onRefresh, globalSea
                 const { time, line } = formatLogLine(log);
                 return (
                   <li key={log._id} className="relative flex gap-6 pb-8 last:pb-0">
-                    <div className="relative z-10 flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-2xl border-2 border-emerald-500/30 bg-white shadow-sm dark:bg-slate-900 dark:border-emerald-500/20">
+                    <div className="relative z-10 flex h-12 w-12 shrink-0 flex-col items-center justify-center rounded-2xl border-2 border-emerald-500/30 bg-white shadow-sm dark:bg-slate-900 dark:border-emerald-500/20 sm:h-14 sm:w-14">
                       <CloudUpload className="h-5 w-5 text-emerald-500" />
                       <span className="font-mono text-[10px] font-bold leading-tight text-emerald-600 dark:text-emerald-400">{time}</span>
                     </div>
-                    <div className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-slate-50/80 p-4 dark:border-slate-800 dark:bg-slate-950/50">
+                    <div className="min-w-0 flex-1 rounded-2xl border border-slate-100 bg-slate-50/80 p-3 dark:border-slate-800 dark:bg-slate-950/50 sm:p-4">
                       <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{line}</p>
                       {log.userEmail && (
                         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{log.userEmail}</p>

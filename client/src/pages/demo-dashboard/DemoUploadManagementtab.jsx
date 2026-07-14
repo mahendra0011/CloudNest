@@ -453,9 +453,9 @@ export default function DemoUploadManagementtab() {
       {/* ════════════════════════════════════ */}
       {/* ZONE 1 — Page Header                */}
       {/* ════════════════════════════════════ */}
-      <div className="flex items-start justify-between mb-7">
-        <div>
-          <h1 className="text-[28px] font-bold text-[#1a1a2e] tracking-tight dark:text-white">
+      <div className="flex flex-col gap-4 mb-7 sm:flex-row sm:items-start sm:justify-between">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-xl font-bold text-[#1a1a2e] tracking-tight dark:text-white sm:text-[28px]">
             Upload Management (Demo)
           </h1>
           <p className="mt-1 text-[13px] text-[#9ca3af] dark:text-slate-500">
@@ -474,27 +474,27 @@ export default function DemoUploadManagementtab() {
           )}
         </div>
 
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-4 px-5 py-3 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:gap-4 sm:px-5 sm:py-3">
             <div className="text-right">
-              <p className="text-[12px] font-semibold uppercase tracking-wider text-[#9ca3af] dark:text-slate-500">
-                Total Uploaded Files
+              <p className="text-[10px] font-semibold uppercase tracking-wider text-[#9ca3af] dark:text-slate-500 sm:text-[12px]">
+                Total Files
               </p>
-              <p className="text-[28px] font-bold text-[#2563eb] mt-0.5 dark:text-blue-400">
+              <p className="text-lg font-bold text-[#2563eb] mt-0.5 dark:text-blue-400 sm:text-[28px]">
                 {files.length.toLocaleString()}
               </p>
             </div>
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-50 text-blue-600 shrink-0 dark:bg-blue-950/30 dark:text-blue-400">
-              <FileText className="h-5 w-5" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 dark:bg-blue-950/30 dark:text-blue-400 sm:w-10 sm:h-10">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
           </div>
 
           <button
             onClick={openUploadModal}
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-blue-600 text-white text-sm font-bold shadow-sm hover:bg-blue-700 hover:shadow-md transition-all"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-blue-600 text-white text-xs font-bold shadow-sm hover:bg-blue-700 hover:shadow-md transition-all sm:gap-2 sm:px-5 sm:py-3 sm:text-sm"
           >
-            <Upload className="h-4 w-4" />
-            Upload File
+            <Upload className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Upload File</span>
           </button>
         </div>
       </div>
@@ -503,8 +503,8 @@ export default function DemoUploadManagementtab() {
       {/* ZONE 2 — Filter & Search Toolbar    */}
       {/* ════════════════════════════════════ */}
       <div className="mb-5">
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative min-w-[280px] max-w-[40%] shrink-0">
+        <div className="flex items-center gap-2 flex-wrap sm:gap-3">
+          <div className="relative w-full min-w-0 sm:min-w-[200px] sm:max-w-[40%] sm:w-auto shrink-0">
             <input
               type="text"
               placeholder="Search by file name, user name, email, type..."
@@ -516,7 +516,7 @@ export default function DemoUploadManagementtab() {
           </div>
 
           <Dropdown
-            label="File Type"
+            label="Type"
             icon={Filter}
             value={typeFilter}
             options={[
@@ -536,7 +536,7 @@ export default function DemoUploadManagementtab() {
           />
 
           <Dropdown
-            label="Filter by Date"
+            label="Date"
             icon={Calendar}
             value={dateFilter}
             options={DATE_FILTERS}
@@ -544,7 +544,7 @@ export default function DemoUploadManagementtab() {
             className="shrink-0"
           />
           {dateFilter === 'custom' && (
-            <div className="flex items-center gap-2">
+            <div className="w-full sm:w-auto flex items-center gap-2">
               <input type="date" value={dateRange.from} onChange={(e) => setDateRange((p) => ({ ...p, from: e.target.value }))}
                 className="rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300" />
               <span className="text-slate-400 text-xs">→</span>
@@ -557,7 +557,7 @@ export default function DemoUploadManagementtab() {
           )}
 
           <Dropdown
-            label="Sort By"
+            label="Sort"
             icon={ArrowUpDown}
             value={sortBy}
             options={SORT_OPTIONS}
@@ -565,26 +565,28 @@ export default function DemoUploadManagementtab() {
             className="shrink-0"
           />
 
-          <Dropdown
-            label="Per Page"
-            icon={null}
-            value={String(perPage)}
-            options={[
-              { value: '10', label: '10 per page' },
-              { value: '25', label: '25 per page' },
-              { value: '50', label: '50 per page' },
-            ]}
-            onChange={(val) => { setPerPage(Number(val)); setPage(1); }}
-            className="shrink-0"
-          />
+          <div className="hidden sm:block">
+            <Dropdown
+              label="Per Page"
+              icon={null}
+              value={String(perPage)}
+              options={[
+                { value: '10', label: '10 per page' },
+                { value: '25', label: '25 per page' },
+                { value: '50', label: '50 per page' },
+              ]}
+              onChange={(val) => { setPerPage(Number(val)); setPage(1); }}
+              className="shrink-0"
+            />
+          </div>
 
           <button
             onClick={handleRefresh}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shrink-0 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-600"
+            className="inline-flex items-center gap-1.5 px-2.5 py-2.5 rounded-lg border border-slate-200 bg-white text-xs text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shrink-0 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:border-slate-600 sm:gap-2 sm:px-3.5 sm:text-sm"
             title="Refresh"
           >
-            <RefreshCw className="h-4 w-4" />
-            <span>Refresh</span>
+            <RefreshCw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Refresh</span>
           </button>
         </div>
 
